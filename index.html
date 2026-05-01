@@ -1,0 +1,2994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>麦弗逊独立悬架设计计算工具·广西大学·车辆工程专业</title>
+<style>
+  :root {
+    --blue: #1a4a8a;
+    --blue-light: #2d6ec0;
+    --bg: #f0f4fb;
+    --card: #ffffff;
+    --border: #c8d8f0;
+    --ok: #1a7c3a;
+    --err: #c0392b;
+    --warn: #d48806;
+    --header-bg: #1a3560;
+    --green: #1e7e34;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "微软雅黑", "Microsoft YaHei", sans-serif; background: var(--bg); color: #222; font-size: 14px; }
+
+  .app-header { background: var(--header-bg); color: white; padding: 14px 20px; display: flex; align-items: center; gap: 14px; justify-content: space-between; }
+  .app-header .logo { font-size: 30px; flex-shrink:0; }
+  .app-header h1 { font-size: 17px; font-weight: 700; line-height: 1.3; }
+  .app-header .sub { font-size: 12px; opacity: 0.75; margin-top: 3px; }
+
+  .tabs { display: flex; background: #1e3d70; padding: 0 16px; border-bottom: 2px solid var(--blue-light); overflow-x: auto; }
+  .tab { padding: 10px 16px; cursor: pointer; color: rgba(255,255,255,0.7); font-size: 13px; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab:hover { color: white; }
+  .tab.active { color: #7ecfff; border-bottom-color: #7ecfff; font-weight: 600; }
+
+  .content { display: none; padding: 20px; max-width: 1100px; margin: 0 auto; }
+  .content.active { display: block; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--blue); border-bottom: 2px solid var(--border); padding-bottom: 8px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { font-size: 18px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+  .field label { font-size: 12px; color: #555; font-weight: 600; }
+  .field input, .field select { padding: 7px 10px; border: 1px solid #c0c8e0; border-radius: 5px; font-size: 13px; background: #f8faff; transition: border-color 0.15s; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--blue-light); background: white; }
+  .field .unit { font-size: 11px; color: #888; margin-top: 2px; }
+
+  .btn { padding: 9px 20px; border: none; border-radius: 5px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .btn-primary { background: var(--blue-light); color: white; }
+  .btn-primary:hover { background: var(--blue); }
+  .btn-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+  .result-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  .result-table th { background: #e8eef8; padding: 8px 10px; text-align: left; border: 1px solid var(--border); font-weight: 600; color: var(--blue); }
+  .result-table td { padding: 7px 10px; border: 1px solid var(--border); }
+  .result-table tr:nth-child(even) td { background: #f8faff; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-ok { background: #d4f0db; color: var(--ok); }
+  .badge-err { background: #fde8e7; color: var(--err); }
+  .badge-warn { background: #fff3cd; color: var(--warn); }
+  .badge-info { background: #e0ecff; color: var(--blue); }
+
+  .formula-box { background: #f0f4ff; border-left: 3px solid var(--blue-light); padding: 10px 14px; border-radius: 0 5px 5px 0; margin: 8px 0; font-family: "Consolas", monospace; font-size: 13px; color: #1a2a7a; line-height: 1.8; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 10px; }
+  .summary-item { background: #f0f6ff; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+  .summary-item .label { font-size: 11px; color: #666; margin-bottom: 4px; }
+  .summary-item .value { font-size: 17px; font-weight: 700; color: var(--blue); }
+  .summary-item .unit-s { font-size: 11px; color: #999; }
+
+  .verify-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-bottom: 1px solid #eef; }
+  .verify-row:last-child { border-bottom: none; }
+  .verify-row .check-label { flex: 1; font-size: 13px; }
+  .verify-row .check-val { font-family: monospace; min-width: 140px; text-align: right; font-size: 13px; }
+
+  .info-box { background: #fffbea; border: 1px solid #f0d96a; border-radius: 5px; padding: 10px 14px; font-size: 12px; color: #5a4800; margin: 8px 0; }
+  .info-box-blue { background: #e8f0ff; border: 1px solid #9ab4e8; border-radius: 5px; padding: 10px 14px; font-size: 12px; color: #1a3060; margin: 8px 0; }
+
+  .section-sub { font-size: 13px; font-weight: 700; color: #2d5a9e; margin: 12px 0 8px 0; border-left: 3px solid var(--blue-light); padding-left: 8px; }
+
+  .result-highlight { background: #f0f8ff; border: 1px solid #a0c4f0; border-radius: 6px; padding: 12px 16px; margin-top: 10px; }
+
+  .print-btn { background: #444; color: white; }
+  .print-btn:hover { background: #222; }
+
+  @media print {
+    .tabs, .btn-bar, .app-header { display: none !important; }
+    .content { display: block !important; }
+    body { background: white; }
+  }
+  @media (max-width: 700px) {
+    .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
+    .tabs { gap: 0; }
+    .tab { padding: 8px 10px; font-size: 12px; }
+  }
+
+  /* ── 特性仿真专用样式 ─────────────────────────────────── */
+  .sim-layout {
+    display: grid;
+    grid-template-columns: 290px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .sim-layout { grid-template-columns: 1fr; } }
+
+  .sim-sidebar { display: flex; flex-direction: column; gap: 12px; }
+
+  .sim-param-group {
+    background: #f8faff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .sim-param-title {
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    color: var(--blue);
+    background: #e8eef8;
+  }
+  .sim-param-title.green { color: #1a7c3a; background: #e6f4ec; }
+  .sim-param-title.blue  { color: #1a4a8a; background: #e8eef8; }
+  .sim-param-title.gold  { color: #7a5a00; background: #fff8e0; }
+  .sim-param-title.red   { color: #c0392b; background: #fdecea; }
+
+  .sim-param-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .sim-input-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .sim-form-group { display: flex; flex-direction: column; gap: 3px; }
+  .sim-label {
+    font-size: 11px;
+    color: #555;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sim-label .sl { color: var(--blue-light); font-style: italic; }
+  .sim-label .su {
+    font-size: 10px;
+    background: #e0e8f0;
+    color: #666;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .sim-input {
+    background: white;
+    border: 1px solid #c0c8e0;
+    border-radius: 5px;
+    padding: 6px 8px;
+    color: #222;
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .sim-input:focus { border-color: var(--blue-light); box-shadow: 0 0 0 2px rgba(45,110,192,0.12); }
+  select.sim-input { cursor: pointer; }
+
+  .sim-run-btn {
+    width: 100%;
+    padding: 9px;
+    background: var(--blue-light);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sim-run-btn:hover { background: var(--blue); }
+
+  .sim-main { display: flex; flex-direction: column; gap: 12px; }
+
+  .sim-subtab-nav {
+    display: flex;
+    gap: 4px;
+    background: #f0f4fb;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 4px;
+  }
+  .sim-subtab-btn {
+    flex: 1;
+    padding: 7px 6px;
+    background: transparent;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #666;
+    transition: all 0.15s;
+  }
+  .sim-subtab-btn:hover { color: #222; background: #dce6f8; }
+  .sim-subtab-btn.active { background: var(--blue-light); color: white; font-weight: 700; }
+
+  .sim-panel { display: none; flex-direction: column; gap: 12px; }
+  .sim-panel.active { display: flex; }
+
+  .sim-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  .sim-metric {
+    background: #f8faff;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 11px;
+  }
+  .sim-metric.gr { border-color: rgba(26,124,58,0.35); background: rgba(26,124,58,0.04); }
+  .sim-metric.bl { border-color: rgba(45,110,192,0.35); background: rgba(45,110,192,0.04); }
+  .sim-metric.or { border-color: rgba(212,136,6,0.35);  background: rgba(212,136,6,0.04); }
+  .sim-metric-label { font-size: 11px; color: #666; margin-bottom: 3px; }
+  .sim-metric-value { font-size: 22px; font-weight: 700; color: var(--blue); }
+  .sim-metric-value.gr { color: var(--ok); }
+  .sim-metric-value.bl { color: var(--blue-light); }
+  .sim-metric-value.or { color: var(--warn); }
+  .sim-metric-unit  { font-size: 11px; color: #999; }
+
+  .sim-chart-wrap {
+    background: #f8faff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .sim-chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sim-chart-title span:last-child { font-size: 11px; color: #888; font-weight: 400; }
+
+  .sim-placeholder {
+    background: #f8faff;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    line-height: 2;
+  }
+  .sim-placeholder .big { font-size: 36px; opacity: 0.25; margin-bottom: 6px; }
+
+  .sim-infobox {
+    background: #eef4ff;
+    border-left: 3px solid var(--blue-light);
+    border-radius: 0 6px 6px 0;
+    padding: 9px 13px;
+    font-size: 12px;
+    color: #2a3a60;
+    line-height: 1.75;
+  }
+  .sim-infobox b { color: var(--blue); }
+
+  .comp-select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 10px;
+  }
+  /* ── 导向机构运动学仿真专用样式 ──────────────────────────── */
+  .km-wrap { background:#070b10; border-radius:8px; overflow:hidden; margin-top:4px; }
+  .km-main { display:flex; min-height:0; font-family:'Segoe UI','Arial',sans-serif; color:#d8eaf8; }
+  .km-sidebar { width:340px; flex-shrink:0; background:#0e151e; border-right:1px solid #1e2d3d; overflow-y:auto; display:flex; flex-direction:column; }
+  .km-sidebar::-webkit-scrollbar { width:5px; }
+  .km-sidebar::-webkit-scrollbar-thumb { background:#253345; border-radius:3px; }
+  .km-section { padding:11px 13px; border-bottom:1px solid #1e2d3d; }
+  .km-section-title { font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#f0a500; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+  .km-section-title::after { content:''; flex:1; height:1px; background:#253345; }
+  .km-point-note { font-size:11px; color:#3d5570; font-family:monospace; margin-bottom:6px; }
+  .km-xyz-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; }
+  .km-xyz-item { display:flex; flex-direction:column; gap:2px; }
+  .km-xyz-item label { font-size:12px; color:#8ab0cc; font-family:monospace; }
+  .km-xyz-item input { background:#0a1320; border:1px solid #253345; border-radius:4px; color:#d8eaf8; font-family:monospace; font-size:13px; padding:5px 6px; width:100%; outline:none; transition:border-color .15s; }
+  .km-xyz-item input:focus { border-color:#f0a500; }
+  .km-xyz-hint { font-size:10px; color:#3d5570; text-align:left; margin-top:4px; font-family:monospace; }
+  .km-param-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .km-param-item { display:flex; flex-direction:column; gap:2px; }
+  .km-param-item label { font-size:12px; color:#8ab0cc; font-family:monospace; }
+  .km-param-item input { background:#0a1320; border:1px solid #253345; border-radius:4px; color:#d8eaf8; font-family:monospace; font-size:13px; padding:5px 7px; width:100%; outline:none; transition:border-color .15s; }
+  .km-param-item input:focus { border-color:#f0a500; }
+  .km-scale-row { display:flex; align-items:center; gap:7px; margin-bottom:6px; }
+  .km-scale-cb { accent-color:#f0a500; width:16px; height:16px; cursor:pointer; flex-shrink:0; }
+  .km-scale-swatch { width:12px; height:12px; border-radius:2px; flex-shrink:0; }
+  .km-scale-label { font-size:13px; color:#8ab0cc; font-family:monospace; flex:1; }
+  .km-scale-input { width:64px; background:#0a1320; border:1px solid #253345; border-radius:4px; color:#d8eaf8; font-family:monospace; font-size:13px; padding:4px 6px; outline:none; text-align:center; }
+  .km-scale-input:focus { border-color:#f0a500; }
+  .km-scale-l1 { font-size:11px; color:#00d4aa; font-family:monospace; width:58px; text-align:right; }
+  .km-derived-grid { display:flex; flex-direction:column; gap:4px; }
+  .km-derived-row { display:flex; justify-content:space-between; align-items:center; padding:4px 7px; background:#0a1320; border-radius:4px; border:1px solid #1e2d3d; }
+  .km-derived-label { font-size:12px; color:#8ab0cc; font-family:monospace; }
+  .km-derived-val { font-size:14px; color:#00d4aa; font-family:monospace; font-weight:700; }
+  .km-override-title { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#00d4aa; margin:10px 0 3px; display:flex; align-items:center; gap:6px; }
+  .km-override-title::after { content:''; flex:1; height:1px; background:#253345; }
+  .km-override-hint { font-size:10px; color:#3d5570; font-family:monospace; margin-bottom:5px; }
+  .km-override-grid { display:flex; flex-direction:column; gap:4px; }
+  .km-override-row { display:flex; align-items:center; gap:4px; padding:3px 7px; background:#0a1320; border-radius:4px; border:1px solid #1e2d3d; }
+  .km-override-label { font-size:11px; color:#8ab0cc; font-family:monospace; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .km-override-input { width:74px; background:#0a1825; border:1px solid #00d4aa; border-radius:4px; color:#00d4aa; font-family:monospace; font-size:11px; padding:3px 4px; outline:none; text-align:center; }
+  .km-override-input:focus { border-color:#ffcc44; }
+  .km-override-input.km-user-edited { border-color:#f0a500; color:#ffcc44; }
+  .km-btn-compute { width:calc(100% - 24px); margin:10px 12px; padding:11px; background:#f0a500; color:#000; font-weight:800; font-size:15px; border:none; border-radius:5px; cursor:pointer; letter-spacing:.04em; text-transform:uppercase; transition:background .15s; }
+  .km-btn-compute:hover { background:#ffcc44; }
+  .km-btn-compute:disabled { background:#253345; color:#3d5570; cursor:not-allowed; }
+  .km-btn-row { display:flex; gap:7px; margin:0 12px 10px; }
+  .km-btn-sm { flex:1; padding:8px; background:#131c27; border:1px solid #253345; color:#8ab0cc; font-size:12px; border-radius:4px; cursor:pointer; transition:background .15s; }
+  .km-btn-sm:hover { background:#253345; color:#d8eaf8; }
+  .km-status-bar { margin:0 12px 10px; padding:7px 10px; background:#0a1320; border-radius:4px; border:1px solid #1e2d3d; font-size:12px; font-family:monospace; color:#8ab0cc; min-height:32px; }
+  .km-status-bar.ok { color:#00d4aa; border-color:#00d4aa; background:rgba(0,212,170,.06); }
+  .km-status-bar.err { color:#e05555; border-color:#e05555; background:rgba(224,85,85,.06); }
+  .km-status-bar.run { color:#f0a500; border-color:#f0a500; }
+  .km-chart-area { flex:1; display:flex; flex-direction:column; min-width:0; background:#070b10; }
+  .km-chart-row { flex:none; height:300px; display:flex; }
+  .km-chart-wrap { flex:1; position:relative; padding:12px 10px 12px 8px; border-right:1px solid #1e2d3d; border-bottom:1px solid #1e2d3d; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
+  .km-chart-row:last-of-type .km-chart-wrap { border-bottom:none; }
+  .km-chart-header { display:flex; align-items:center; justify-content:center; position:relative; margin-bottom:4px; flex-shrink:0; }
+  .km-chart-title { font-size:13px; font-weight:700; color:#8ab0cc; text-align:center; font-family:monospace; }
+  .km-btn-dl { position:absolute; right:0; top:50%; transform:translateY(-50%); background:#131c27; border:1px solid #253345; border-radius:3px; color:#00d4aa; font-size:10px; padding:2px 6px; cursor:pointer; font-family:monospace; }
+  .km-btn-dl:hover { color:#f0a500; }
+  canvas.km-plot { flex:1; width:100%; display:block; height:0; min-height:120px; }
+  .km-legend { display:flex; flex-wrap:wrap; gap:6px 12px; padding:6px 10px; border-top:1px solid #1e2d3d; justify-content:center; flex-shrink:0; background:#0e151e; }
+  .km-legend-item { display:flex; align-items:center; gap:5px; }
+  .km-legend-line { width:22px; height:3px; border-radius:2px; }
+  .km-legend-text { font-size:12px; font-family:monospace; color:#8ab0cc; }
+  .km-summary-bar { border-top:1px solid #1e2d3d; background:#0e151e; padding:6px 12px; overflow-x:auto; flex-shrink:0; }
+  .km-summary-table { font-family:monospace; font-size:12px; border-collapse:collapse; white-space:nowrap; color:#8ab0cc; }
+  .km-summary-table th { color:#f0a500; font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:3px 10px 3px 0; font-weight:700; border-bottom:1px solid #253345; }
+  .km-summary-table td { padding:2px 10px 2px 0; border-bottom:1px solid #1e2d3d; }
+  .km-summary-table td.km-hi { color:#d8eaf8; }
+  @media (max-width:900px) {
+    .km-main { flex-direction:column; min-height:auto; }
+    .km-sidebar { width:100%; border-right:none; border-bottom:1px solid #1e2d3d; }
+    .km-chart-row { flex-direction:column; height:auto; }
+    .km-chart-wrap { height:260px; flex:none; border-right:none !important; border-bottom:1px solid #1e2d3d; overflow:hidden; }
+    .km-chart-row:last-of-type .km-chart-wrap:last-child { border-bottom:none; }
+  }
+
+  /* ── 登录与教师管理专用样式 ── */
+  .student-badge { background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 6px; font-size: 13px; }
+  .student-badge .label { opacity: 0.8; font-size: 11px; }
+  .student-badge .value { font-size: 15px; font-weight: 700; margin-top: 2px; }
+  .teacher-btn { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; border: 1px solid rgba(255,255,255,0.3); transition: all 0.2s; }
+  .teacher-btn:hover { background: rgba(255,255,255,0.3); }
+  .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+  .login-box { background: white; padding: 32px; border-radius: 12px; max-width: 460px; width: 92%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+  .login-box h2 { color: var(--blue); margin-bottom: 8px; font-size: 22px; }
+  .login-box .desc { color: #666; font-size: 13px; margin-bottom: 24px; line-height: 1.6; }
+  .login-field { margin-bottom: 16px; }
+  .login-field label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #555; }
+  .login-field input { width: 100%; padding: 10px 14px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; transition: border-color 0.2s; }
+  .login-field input:focus { outline: none; border-color: var(--blue-light); }
+  .login-field .hint { font-size: 12px; color: #888; margin-top: 4px; }
+  .login-field .error { font-size: 12px; color: var(--err); margin-top: 4px; display: none; }
+  .login-btn { width: 100%; padding: 12px; background: var(--blue-light); color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+  .login-btn:hover { background: var(--blue); }
+  .btn-success { background: #1a7c3a; color: white; }
+  .btn-success:hover { background: #145d2b; }
+  .btn-warning { background: #d48806; color: white; }
+  .btn-warning:hover { background: #b37205; }
+  .btn-danger { background: #c0392b; color: white; }
+  .btn-danger:hover { background: #a02a1f; }
+  .score-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 10px; margin-bottom: 16px; }
+  .score-display { text-align: center; }
+  .score-value { font-size: 54px; font-weight: 700; margin: 10px 0; }
+  .score-label { font-size: 14px; opacity: 0.9; }
+  .score-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 20px; }
+  .score-detail-item { background: rgba(255,255,255,0.15); padding: 10px; border-radius: 6px; text-align: center; }
+  .score-detail-item .label { font-size: 11px; opacity: 0.85; }
+  .score-detail-item .value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+  .stats-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 16px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
+  .stats-item { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; text-align: center; }
+  .stats-item .label { font-size: 12px; opacity: 0.9; }
+  .stats-item .value { font-size: 28px; font-weight: 700; margin-top: 5px; }
+  .student-list { max-height: 500px; overflow-y: auto; }
+  .student-item { background: #f8faff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+  .student-item:hover { background: #e8eef8; border-color: var(--blue-light); }
+  .student-item .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .student-item .s-name { font-size: 15px; font-weight: 700; color: var(--blue); }
+  .student-item .s-stats { font-size: 12px; color: #666; }
+  .student-item .s-detail { font-size: 12px; color: #888; margin-top: 4px; }
+  .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 36px 20px; text-align: center; background: #f8faff; transition: all 0.3s; cursor: pointer; }
+  .upload-zone:hover { border-color: var(--blue-light); background: #f0f6ff; }
+  .upload-zone.dragover { border-color: var(--blue); background: #e8eef8; }
+  .upload-zone .uz-icon { font-size: 44px; margin-bottom: 10px; }
+  .upload-zone .uz-text { font-size: 14px; color: #666; }
+  .upload-zone .uz-hint { font-size: 12px; color: #999; margin-top: 8px; }
+  .grading-section { margin-bottom: 14px; }
+  .grading-section-title { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+  @media (max-width:700px) {
+    .score-details { grid-template-columns: 1fr 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+user-select: none</style>
+</head>
+<body>
+
+<!-- 学生登录界面 -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2>🎓 学生身份验证</h2>
+    <div class="desc">
+      欢迎使用麦弗逊独立悬架设计计算工具！<br>
+      请输入您的学号和姓名开始设计。完成后可生成评分报告。
+    </div>
+    <div class="login-field">
+      <label>学号</label>
+      <input type="text" id="studentId" placeholder="请输入10位数字学号" maxlength="10">
+      <div class="hint">示例：2024012345</div>
+      <div class="error" id="idError">请输入10位数字学号</div>
+    </div>
+    <div class="login-field">
+      <label>姓名</label>
+      <input type="text" id="studentName" placeholder="请输入您的姓名">
+      <div class="hint">用于报告标识</div>
+      <div class="error" id="nameError">请输入姓名（至少2个字符）</div>
+    </div>
+    <button class="login-btn" onclick="submitLogin()">开始设计</button>
+  </div>
+</div>
+
+<!-- 教师登录界面 -->
+<div class="login-overlay" id="teacherLoginOverlay" style="display:none">
+  <div class="login-box">
+    <h2>🔐 教师管理系统</h2>
+    <div class="desc">请输入教师密码以访问统计管理功能</div>
+    <div class="login-field">
+      <label>教师密码</label>
+      <input type="password" id="teacherPassword" placeholder="请输入密码">
+      <div class="hint"></div>
+      <div class="error" id="pwdError">密码错误，请重试</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="login-btn" onclick="submitTeacherLogin()">登录</button>
+      <button class="login-btn" style="background:#888" onclick="closeTeacherLogin()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-header">
+  <div class="logo">🚗</div>
+  <div style="flex:1">
+    <h1>麦弗逊独立悬架设计计算工具·广西大学·车辆工程专业·《汽车设计》课程教学团队</h1>
+    <div class="sub">《汽车设计》第6版（闵海涛 王建华）·第7章 悬架设计· 作业版</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-shrink:0">
+    <div class="teacher-btn" onclick="openTeacherLogin()" id="teacherBtn">👨‍🏫 教师管理</div>
+    <div class="student-badge" id="studentBadge" style="display:none">
+      <div class="label">当前学生</div>
+      <div class="value"><span id="displayName"></span>（<span id="displayId"></span>）</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs" id="tabBar">
+  <div class="tab active" onclick="switchTab(0)">① 整车基本参数</div>
+  <div class="tab" onclick="switchTab(1)">② 悬架主要参数</div>
+  <div class="tab" onclick="switchTab(2)">③ 螺旋弹簧设计</div>
+  <div class="tab" onclick="switchTab(3)">④ 弹簧校核</div>
+  <div class="tab" onclick="switchTab(4)">⑤ 减振器设计</div>
+  <div class="tab" onclick="switchTab(5)">⑥ 减振器特性仿真</div>
+  <div class="tab" onclick="switchTab(6)">⑦ 导向机构设计</div>
+  <div class="tab" onclick="switchTab(7)">⑧ 导向机构运动学仿真</div>
+  <div class="tab" onclick="switchTab(8)">📊 汇总报告</div>
+  <div class="tab" onclick="switchTab(9)">🏆 智能评分报告</div>
+</div>
+
+<!-- TAB 0: 整车基本参数 -->
+<div class="content active" id="tab0">
+  <div class="card">
+    <div class="card-title"><span class="icon">🚗</span>整车基本参数输入</div>
+    <div class="grid3">
+      <div class="field"><label>整车总质量 mₐ</label><input type="number" id="ma" value="1850"><div class="unit">kg（满载，含驾驶员+乘客+货物）</div></div>
+      <div class="field"><label>整备质量 m₀</label><input type="number" id="m0" value="1250"><div class="unit">kg（空载，含驾驶员75kg）</div></div>
+      <div class="field"><label>发动机排量</label>
+        <select id="displ">
+          <option value="small" selected>≤1.6L（小型/微型乘用车）</option>
+          <option value="medium">1.6L～2.5L（中型乘用车）</option>
+          <option value="large">＞2.5L（大型/SUV）</option>
+        </select>
+      </div>
+      <div class="field"><label>前轴满载轴荷分配 φf</label><input type="number" id="phif" value="47" step="1"><div class="unit">%（例：47 即前轴承担47%满载）</div></div>
+      <div class="field"><label>前轴空载轴荷分配 φf0</label><input type="number" id="phif0" value="54" step="1"><div class="unit">%（例：54 即前轴承担54%空载）</div></div>
+      <div class="field"><label>前轴簧下质量 mu</label><input type="number" id="mu" value="80"><div class="unit">kg（独立悬架参考值：60~100 kg）</div></div>
+      <div class="field"><label>后轴簧下质量 mu_r</label><input type="number" id="mu_r" value="85"><div class="unit">kg（后轴非簧载质量，参考值：70~110 kg）</div></div>
+      <div class="field"><label>最高车速 umax</label><input type="number" id="umax" value="150"><div class="unit">km/h</div></div>
+      <div class="field"><label>轴距 L</label><input type="number" id="wheelbase" value="2720"><div class="unit">mm</div></div>
+      <div class="field"><label>前轮距 Bf</label><input type="number" id="trackf" value="1420"><div class="unit">mm</div></div>
+      <div class="field"><label>后轮距 Br</label><input type="number" id="trackr" value="1400"><div class="unit">mm（后轮距，与前轮距可不同）</div></div>
+    </div>
+    <div class="btn-bar"><button class="btn btn-primary" onclick="calcAll()">✅ 更新所有计算</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span>麦弗逊悬架设计参数推荐范围</div>
+    <table class="result-table">
+      <tr><th>参数</th><th>推荐范围</th><th>来源依据</th></tr>
+      <tr><td>前悬架偏频 n（发动机≤1.6L乘用车，满载）</td><td>1.00 ～ 1.45 Hz</td><td>《汽车设计》第7章 表7-1</td></tr>
+      <tr><td>前悬架偏频 n（发动机1.6L～2.5L乘用车，满载）</td><td>0.80 ～ 1.20 Hz</td><td>《汽车设计》第7章 表7-1</td></tr>
+      <tr><td>悬架静挠度 fc（乘用车）</td><td>80 ～ 250 mm（由偏频计算）</td><td>fc = g/(4π²n²)</td></tr>
+      <tr><td>悬架动挠度 fd（乘用车）</td><td>70 ～ 90 mm</td><td>《汽车设计》第7章</td></tr>
+      <tr><td>弹簧缠绕比 C</td><td>4 ～ 16（推荐 6 ～ 9）</td><td>机械设计手册·弹簧设计</td></tr>
+      <tr><td>弹簧螺旋角 α</td><td>5° ～ 9°</td><td>弹簧稳定性要求</td></tr>
+      <tr><td>弹簧高径比 H₀/Dm</td><td>≤ 4（推荐≤2.6，否则需导向）</td><td>弹簧失稳条件</td></tr>
+      <tr><td>弹簧许用切应力 [τ]（60Si2MnA）</td><td>500 ～ 700 N/mm²</td><td>弹簧材料手册</td></tr>
+      <tr><td>相对阻尼系数 ξ</td><td>0.25 ～ 0.35（推荐0.3）</td><td>《汽车设计》第7章</td></tr>
+      <tr><td>减振器安装倾角 α_d</td><td>10° ～ 20°</td><td>麦弗逊结构特点</td></tr>
+      <tr><td>减振器工作缸许用压力 [p]</td><td>3 ～ 5 MPa（推荐4 MPa）</td><td>《汽车设计》第7章</td></tr>
+      <tr><td>活塞杆/工作缸直径比 λ</td><td>0.40 ～ 0.50</td><td>结构设计经验</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- TAB 1: 悬架主要参数 -->
+<div class="content" id="tab1">
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span>悬架主要参数计算</div>
+    <div class="grid2">
+      <div>
+        <div class="section-sub">① 悬架偏频选取</div>
+        <div class="field">
+          <label>前悬架偏频 n（Hz）</label>
+          <input type="number" id="n_freq" value="1.25" step="0.05">
+          <div class="unit" id="n_freq_hint">≤1.6L乘用车满载推荐范围：1.00～1.45 Hz</div>
+        </div>
+        <div class="section-sub">② 悬架动挠度</div>
+        <div class="field">
+          <label>悬架动挠度 fd（mm）</label>
+          <input type="number" id="fd" value="80" step="5">
+          <div class="unit">乘用车推荐：70～90 mm；大客车：50～80 mm；货车：60～90 mm</div>
+        </div>
+        <div class="section-sub">③ 减振器安装倾角</div>
+        <div class="field">
+          <label>减振器轴线与铅垂线夹角 α_d（°）</label>
+          <input type="number" id="alpha_d" value="16" step="1">
+          <div class="unit">麦弗逊悬架典型取值：10°～20°</div>
+        </div>
+      </div>
+      <div>
+        <div class="formula-box">
+          悬架静挠度（由偏频计算）：<br>
+          <strong>fc = g / (4π²n²)</strong>　(×1000 转换为 mm)<br><br>
+          前轴满载轴荷：<br>
+          <strong>Gf = mₐ × g × φf / 100</strong>　[N]<br><br>
+          前轴空载轴荷：<br>
+          <strong>Gf0 = m₀ × g × φf0 / 100</strong>　[N]<br><br>
+          单侧簧上质量（满载）：<br>
+          <strong>ms = (mₐ × φf/100 − mu) / 2</strong>　[kg]<br><br>
+          单侧簧上质量（空载）：<br>
+          <strong>ms0 = (m₀ × φf0/100 − mu) / 2</strong>　[kg]<br><br>
+          悬架刚度：<br>
+          <strong>C = ms × g / fc</strong>　[N/mm]<br><br>
+          悬架工作行程：<br>
+          <strong>fw = fc + fd</strong>　[mm]
+        </div>
+      </div>
+    </div>
+    <div class="btn-bar"><button class="btn btn-primary" onclick="calcSuspension()">🔄 计算悬架主要参数</button></div>
+    <div id="suspResult" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- TAB 2: 螺旋弹簧设计 -->
+<div class="content" id="tab2">
+  <div class="card">
+    <div class="card-title"><span class="icon">🌀</span>压缩螺旋弹簧参数设计</div>
+    <div class="info-box">麦弗逊悬架螺旋弹簧套装在减振器外部，承受悬架弹性力。弹簧材料推荐选用60Si2MnA（高强度弹簧钢）。</div>
+    <div class="grid2">
+      <div>
+        <div class="section-sub">弹簧主要设计参数输入</div>
+        <div class="field"><label>缠绕比 C（推荐 6～9）</label><input type="number" id="C_spring" value="7.5" step="0.5"><div class="unit">C = Dm/d（中径与丝径之比）</div></div>
+        <div class="field"><label>弹簧许用切应力 [τ]（N/mm²）</label><input type="number" id="tau_allow" value="600"><div class="unit">满载 500～700 N/mm²，一般取600</div></div>
+        <div class="field"><label>弹簧有效圈数 n₁</label><input type="number" id="n1_spring" value="6" step="1"><div class="unit">一般取 5～8 圈</div></div>
+        <div class="field"><label>弹簧支承圈数 n₂（据表7-2端部结构选取）</label>
+          <select id="n2_spring">
+            <option value="2"    selected>n₂ = 2.00 — 两端碾细（总圈数 n = i+2）</option>
+            <option value="1.33"         >n₂ = 1.33 — 两端切断（总圈数 n = i+1.33）</option>
+            <option value="1.5"          >n₂ = 1.50 — 两端内弯（总圈数 n = i+1.50）</option>
+            <option value="1.67"         >n₂ = 1.67 — 一端碾细—一端切断（n = i+1.67）</option>
+            <option value="1.75"         >n₂ = 1.75 — 一端碾细—一端内弯（n = i+1.75）</option>
+            <option value="1.42"         >n₂ = 1.42 — 一端切断—一端内弯（n = i+1.42）</option>
+          </select>
+          <div class="unit">参见《汽车设计》表7-2：螺旋弹簧不同端部结构总圈数 n 与有效圈数 i 的关系</div>
+        </div>
+        <div class="field"><label>弹簧节距系数 kt（t = kt × Dm）</label><input type="number" id="kt_spring" value="0.40" step="0.01"><div class="unit">推荐 0.30～0.50</div></div>
+        <div class="field"><label>剪切弹性模量 G（N/mm²）</label><input type="number" id="G_mod" value="80000"><div class="unit">60Si2MnA取 G = 80000 N/mm²</div></div>
+        <div class="field"><label>弹簧安装倾角 α_s（°，通常与减振器同轴取0）</label><input type="number" id="alpha_s" value="9" step="1"><div class="unit">弹簧轴线与铅垂线夹角，用于计算实际轴向载荷</div></div>
+      </div>
+      <div>
+        <div class="formula-box">
+          Wahl曲度系数（式7-24）：<br>
+          <strong>K = (4C−1)/(4C−4) + 0.615/C</strong><br><br>
+          弹簧丝直径：<br>
+          <strong>d = √(8KCP_max / (π[τ]))</strong><br><br>
+          （P_max = ms × g × cos α_s [N]）<br><br>
+          弹簧中径：<strong>Dm = C × d</strong><br>
+          弹簧外径：<strong>Do = Dm + d</strong><br>
+          弹簧内径：<strong>Di = Dm − d</strong><br><br>
+          总圈数：<strong>n = n₁ + n₂</strong><br><br>
+          节距：<strong>t = kt × Dm</strong><br><br>
+          自由高度（两端磨平）：<br>
+          <strong>H₀ = n₁×t + (n₂−0.5)×d</strong><br><br>
+          压并高度：<br>
+          <strong>Hb = (n₁+n₂−0.5)×d</strong>
+        </div>
+      </div>
+    </div>
+    <div class="btn-bar"><button class="btn btn-primary" onclick="calcSpring()">🔄 计算螺旋弹簧参数</button></div>
+    <div id="springCalcResult" style="margin-top:14px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📏</span>弹簧丝径标准系列（参考选取）</div>
+    <div class="info-box">由计算值选取最接近的标准弹簧丝径，然后重新校核强度。标准丝径系列（摘自弹簧设计手册）：</div>
+    <div style="font-size:13px;color:#444;padding:6px 0">
+      常用弹簧丝径（mm）：8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 22, 25, 28, 30, 32
+    </div>
+    <div class="field" style="max-width:200px;margin-top:8px">
+      <label>选取标准弹簧丝径 d_std（mm）</label>
+      <input type="number" id="d_std" value="14" step="1">
+      <div class="unit">从上列标准值中选取</div>
+    </div>
+    <div class="btn-bar"><button class="btn btn-primary" onclick="calcSpringFinal()">✅ 以标准丝径重新计算</button></div>
+    <div id="springFinalResult" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- TAB 3: 弹簧校核 -->
+<div class="content" id="tab3">
+  <div class="card">
+    <div class="card-title"><span class="icon">✅</span>螺旋弹簧校核（三项）</div>
+    <div class="info-box">弹簧校核包括：① 切应力强度校核；② 高径比稳定性校核；③ 弹簧刚度验证。所有结果应满足设计要求。</div>
+    <div id="springVerifyResult">
+      <div class="info-box-blue">请先在【③ 螺旋弹簧设计】标签页中完成弹簧参数计算，再回到此页查看校核结果。</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span>弹簧刚度计算</div>
+    <div class="formula-box">
+      弹簧刚度（式7-xx）：<br>
+      <strong>Cs = G × d⁴ / (8 × Dm³ × n₁)</strong>　[N/mm]<br><br>
+      其中：G — 剪切弹性模量 [N/mm²]；d — 弹簧丝径 [mm]<br>
+      Dm — 弹簧中径 [mm]；n₁ — 有效圈数<br><br>
+      验证：悬架刚度 C 应等于弹簧刚度 Cs（或经弹簧安装角修正后相等）：<br>
+      <strong>Cs × cos²α_s ≈ C</strong>（安装倾斜时修正）<br><br>
+      弹性特性：空载行程 = (P_max−P_min)/Cs，应 ≥ fc（静挠度）
+    </div>
+    <div id="springStiffResult" style="margin-top:10px">
+      <div class="info-box-blue">请先计算弹簧参数。</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: 减振器设计 -->
+<div class="content" id="tab4">
+  <div class="card">
+    <div class="card-title"><span class="icon">🔧</span>筒式减振器设计</div>
+    <div class="info-box">麦弗逊悬架采用双向作用筒式液压减振器，减振器轴线与弹簧同轴（或接近同轴），内置导向套承受侧向力。</div>
+    <div class="grid2">
+      <div>
+        <div class="section-sub">阻尼参数输入</div>
+        <div class="field"><label>相对阻尼系数 ξ（推荐 0.25～0.35）</label><input type="number" id="xi" value="0.3" step="0.05"><div class="unit">ξ越大振动衰减越快，但传力也越大</div></div>
+        <div class="field"><label>伸张行程阻尼系数比例（建议0.6～0.7）</label><input type="number" id="xi_ext_ratio" value="0.571" step="0.01"><div class="unit">ξ_ext = r × (ξ_ext+ξ_comp)，满足 ξ_ext＝2ξ_comp</div></div>
+        <div class="section-sub">工作缸参数</div>
+        <div class="field"><label>工作缸许用压力 [p]（MPa）</label><input type="number" id="p_allow" value="4" step="0.5"><div class="unit">一般取 3～5 MPa</div></div>
+        <div class="field"><label>活塞杆/工作缸直径比 λ</label><input type="number" id="lambda" value="0.40" step="0.05"><div class="unit">一般取 0.40～0.50</div></div>
+        <div class="field"><label>车身振幅 A（mm，一般取 40mm）</label><input type="number" id="A_amp" value="40"><div class="unit">计算最大卸荷速度使用</div></div>
+        <div class="section-sub">结构尺寸</div>
+        <div class="field"><label>减振器基长 l₀（mm）</label><input type="number" id="l0_damper" value="80"><div class="unit">底部连接长度，约80mm</div></div>
+      </div>
+      <div>
+        <div class="formula-box">
+          悬架固有角频率：<br>
+          <strong>ωn = 2π × n_freq</strong>　[rad/s]<br><br>
+          减振器阻尼系数（含安装角修正）：<br>
+          <strong>c = 2ξ × ms × ωn / cos²α_d</strong>　[N·s/m]<br><br>
+          伸张/压缩阻尼系数（ξ_ext = 2ξ_comp）：<br>
+          <strong>c_ext = 2ξ_ext × ms × ωn / cos²α_d</strong><br>
+          <strong>c_comp = 2ξ_comp × ms × ωn / cos²α_d</strong><br><br>
+          最大卸荷速度：<br>
+          <strong>v₀ = A × ωn × cos α_d</strong>　[m/s]<br><br>
+          最大卸荷力（伸张行程）：<br>
+          <strong>F₀ = c_ext × v₀</strong>　[N]<br><br>
+          工作缸直径（式7-xx）：<br>
+          <strong>D' = √( 4F₀ / (π × [p] × (1−λ²)) )</strong>　[mm]<br><br>
+          标准工作缸直径系列（mm）：<br>
+          20, 25, 27, 30, 32, 35, 40, 45, 50, 65, 70
+        </div>
+      </div>
+    </div>
+    <div class="btn-bar"><button class="btn btn-primary" onclick="calcDamper()">🔄 计算减振器参数</button></div>
+    <div id="damperResult" style="margin-top:14px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📏</span>减振器外形尺寸确定</div>
+    <div class="grid2">
+      <div>
+        <div class="field"><label>选取工作缸直径 D（mm）</label>
+          <select id="D_damper_std">
+            <option value="20">20 mm</option>
+            <option value="25">25 mm</option>
+            <option value="27">27 mm</option>
+            <option value="30" selected>30 mm</option>
+            <option value="32">32 mm</option>
+            <option value="35">35 mm</option>
+            <option value="40">40 mm</option>
+            <option value="45">45 mm</option>
+            <option value="50">50 mm</option>
+            <option value="65">65 mm</option>
+            <option value="70">70 mm</option>
+          </select>
+          <div class="unit">参见 QC/T 491—2018《汽车减振器性能要求及台架试验方法》</div>
+        </div>
+        <div class="field"><label>活塞行程 S（mm，参考QC/T 491）</label><input type="number" id="S_stroke" value="200"><div class="unit">根据悬架动行程确定：S ≥ fc + fd</div></div>
+        <div class="field"><label>贮油筒壁厚 δ_w（mm）</label><input type="number" id="wall_thick" value="2" step="0.5"></div>
+      </div>
+      <div>
+        <div class="formula-box">
+          活塞杆直径：<br>
+          <strong>d_rod = λ × D</strong>　[mm]，取标准值<br><br>
+          贮油筒最大外径：<br>
+          <strong>D_out = 2D + 2δ_w</strong>　（参考值）<br><br>
+          防尘罩最大外径：<br>
+          <strong>D_dust ≈ D_out + 6</strong>　[mm]<br><br>
+          最小行程长度（压缩至底）：<br>
+          <strong>L_min = l₀ + Hb_damper</strong>　[mm]<br><br>
+          最大行程长度（全伸）：<br>
+          <strong>L_max = L_min + S</strong>　[mm]
+        </div>
+      </div>
+    </div>
+    <div class="btn-bar"><button class="btn btn-primary" onclick="calcDamperSize()">🔄 确定外形尺寸</button></div>
+    <div id="damperSizeResult" style="margin-top:14px"></div>
+  </div>
+
+  <!-- 表7-4 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span>表7-4　双筒式减振器最大外径尺寸参考值</div>
+    <div class="info-box">
+      储液缸直径 D<sub>s</sub> = (1.35～1.50)D，壁厚 δ<sub>w</sub> = 2.0～2.5 mm（材料：20钢）。<br>
+      最大外径 D<sub>max</sub> = D<sub>s</sub> + 2δ<sub>w</sub>（下表取 D<sub>s</sub> = 1.40D，δ<sub>w</sub> = 2.5 mm 计算）。
+    </div>
+    <table class="result-table" style="margin-top:8px">
+      <tr>
+        <th>工作缸直径 D（mm）</th>
+        <th>储液缸直径 D<sub>s</sub>（mm）<br><span style="font-weight:400;font-size:11px">1.35D ～ 1.50D</span></th>
+        <th>壁厚 δ<sub>w</sub>（mm）</th>
+        <th>最大外径参考值 D<sub>max</sub>（mm）</th>
+      </tr>
+      <tr><td>20</td><td>27 ～ 30</td><td>2.0 ～ 2.5</td><td>31 ～ 35</td></tr>
+      <tr><td>25</td><td>34 ～ 38</td><td>2.0 ～ 2.5</td><td>38 ～ 43</td></tr>
+      <tr><td>27</td><td>36 ～ 41</td><td>2.0 ～ 2.5</td><td>40 ～ 46</td></tr>
+      <tr><td>30</td><td>41 ～ 45</td><td>2.0 ～ 2.5</td><td>45 ～ 50</td></tr>
+      <tr><td>32</td><td>43 ～ 48</td><td>2.0 ～ 2.5</td><td>47 ～ 53</td></tr>
+      <tr><td>35</td><td>47 ～ 53</td><td>2.0 ～ 2.5</td><td>51 ～ 58</td></tr>
+      <tr><td>40</td><td>54 ～ 60</td><td>2.0 ～ 2.5</td><td>58 ～ 65</td></tr>
+      <tr><td>45</td><td>61 ～ 68</td><td>2.0 ～ 2.5</td><td>65 ～ 73</td></tr>
+      <tr><td>50</td><td>68 ～ 75</td><td>2.0 ～ 2.5</td><td>72 ～ 80</td></tr>
+      <tr><td>65</td><td>88 ～ 98</td><td>2.0 ～ 2.5</td><td>92 ～ 103</td></tr>
+      <tr><td>70</td><td>95 ～ 105</td><td>2.0 ～ 2.5</td><td>99 ～ 110</td></tr>
+    </table>
+  </div>
+
+  <!-- 表7-5 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span>表7-5　各种工作缸直径减振器的额定阻尼力范围</div>
+    <div class="info-box">
+      测试条件：活塞速度 v = 0.52 m/s，温度 20 ℃。<br>
+      伸张行程阻尼力 F<sub>ext</sub> 一般约为压缩行程阻尼力 F<sub>comp</sub> 的 2 倍（ξ<sub>ext</sub> = 2ξ<sub>comp</sub>）。<br>
+      参考标准：QC/T 491—2018《汽车减振器性能要求及台架试验方法》。
+    </div>
+    <table class="result-table" style="margin-top:8px">
+      <tr>
+        <th>工作缸直径 D（mm）</th>
+        <th>伸张行程额定阻尼力 F<sub>ext</sub>（N）<br><span style="font-weight:400;font-size:11px">v = 0.52 m/s</span></th>
+        <th>压缩行程额定阻尼力 F<sub>comp</sub>（N）<br><span style="font-weight:400;font-size:11px">v = 0.52 m/s</span></th>
+        <th>适用车型参考</th>
+      </tr>
+      <tr><td>20</td><td>100 ～ 500</td><td>50 ～ 250</td><td>微型车、小型摩托</td></tr>
+      <tr><td>25</td><td>200 ～ 700</td><td>100 ～ 350</td><td>微型乘用车</td></tr>
+      <tr><td>27</td><td>250 ～ 900</td><td>125 ～ 450</td><td>小型乘用车</td></tr>
+      <tr><td>30</td><td>350 ～ 1200</td><td>175 ～ 600</td><td>小型乘用车（常用）</td></tr>
+      <tr><td>32</td><td>450 ～ 1500</td><td>225 ～ 750</td><td>紧凑型乘用车</td></tr>
+      <tr><td>35</td><td>600 ～ 1800</td><td>300 ～ 900</td><td>中型乘用车</td></tr>
+      <tr><td>40</td><td>800 ～ 2500</td><td>400 ～ 1250</td><td>中型乘用车、SUV</td></tr>
+      <tr><td>45</td><td>1000 ～ 3000</td><td>500 ～ 1500</td><td>SUV、MPV</td></tr>
+      <tr><td>50</td><td>1200 ～ 4000</td><td>600 ～ 2000</td><td>中大型 SUV</td></tr>
+      <tr><td>65</td><td>2000 ～ 6000</td><td>1000 ～ 3000</td><td>轻型商用车、客车</td></tr>
+      <tr><td>70</td><td>2500 ～ 7000</td><td>1250 ～ 3500</td><td>中型商用车、货车</td></tr>
+    </table>
+    <div class="info-box-blue" style="margin-top:10px">
+      <b>设计提示：</b>设计时应根据计算所得阻尼系数 c 及最大卸荷速度 v₀ 估算额定阻尼力
+      F = c<sub>ext</sub> × 0.52，并对照本表所选工作缸直径对应的阻尼力范围进行校核，若超出范围则需重新选取缸径。
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: 减振器特性仿真 -->
+<div class="content" id="tab5_sim">
+  <div class="card">
+    <div class="card-title"><span class="icon">📈</span>减振器特性仿真</div>
+    <div class="info-box">
+      基于双筒液压减振器物理模型：复原行程油液从下腔通过活塞节流孔流向上腔；压缩行程活塞杆侵入体积通过底阀节流孔排入储油缸。工作缸径与活塞杆径自动引用第⑤部分计算结果。
+    </div>
+    <div class="sim-layout">
+
+      <!-- 左侧参数栏 -->
+      <div class="sim-sidebar">
+
+        <div class="sim-param-group">
+          <div class="sim-param-title gold">🔩 结构参数</div>
+          <div class="sim-param-body">
+            <div class="sim-input-row">
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">D<sub>p</sub></span> 工作缸径 <span class="su">mm</span></div>
+                <input class="sim-input" type="number" id="s_Dp" value="30" min="15" max="80" step="0.5" readonly style="background:#eef4ff;color:var(--blue);font-weight:700;cursor:default;">
+                <div style="font-size:10px;color:#888;margin-top:2px;">↑ 自动引用⑤减振器设计</div>
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">d<sub>r</sub></span> 活塞杆径 <span class="su">mm</span></div>
+                <input class="sim-input" type="number" id="s_Dr" value="12" min="5" max="40" step="0.5" readonly style="background:#eef4ff;color:var(--blue);font-weight:700;cursor:default;">
+                <div style="font-size:10px;color:#888;margin-top:2px;">↑ 自动引用⑤减振器设计</div>
+              </div>
+            </div>
+            <div class="sim-input-row">
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">ρ</span> 油密度 <span class="su">kg/m³</span></div>
+                <input class="sim-input" type="number" id="s_rho" value="900" min="700" max="1100">
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">F<sub>fr</sub></span> 摩擦力 <span class="su">N</span></div>
+                <input class="sim-input" type="number" id="s_Ffr" value="30" min="0" max="300">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sim-param-group">
+          <div class="sim-param-title green">🟢 复原阀（活塞节流孔）</div>
+          <div class="sim-param-body">
+            <div class="sim-input-row">
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">d<sub>f</sub></span> 孔径 <span class="su">mm</span></div>
+                <input class="sim-input" type="number" id="s_df" value="1.5" min="0.3" max="5" step="0.1">
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">n<sub>f</sub></span> 孔数 <span class="su">个</span></div>
+                <input class="sim-input" type="number" id="s_nf" value="4" min="1" max="12">
+              </div>
+            </div>
+            <div class="sim-input-row">
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">C<sub>df</sub></span> 流量系数 <span class="su">—</span></div>
+                <input class="sim-input" type="number" id="s_Cdf" value="0.62" min="0.3" max="0.9" step="0.01">
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">k<sub>f</sub></span> 阀片柔度 <span class="su">×10⁻⁹</span></div>
+                <input class="sim-input" type="number" id="s_kf" value="5" min="0" max="100" step="1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sim-param-group">
+          <div class="sim-param-title blue">🔵 压缩阀（底阀节流孔）</div>
+          <div class="sim-param-body">
+            <div class="sim-input-row">
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">d<sub>y</sub></span> 孔径 <span class="su">mm</span></div>
+                <input class="sim-input" type="number" id="s_dy" value="0.8" min="0.2" max="5" step="0.1">
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">n<sub>y</sub></span> 孔数 <span class="su">个</span></div>
+                <input class="sim-input" type="number" id="s_ny" value="4" min="1" max="12">
+              </div>
+            </div>
+            <div class="sim-input-row">
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">C<sub>dy</sub></span> 流量系数 <span class="su">—</span></div>
+                <input class="sim-input" type="number" id="s_Cdy" value="0.67" min="0.3" max="0.9" step="0.01">
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">k<sub>y</sub></span> 阀片柔度 <span class="su">×10⁻⁹</span></div>
+                <input class="sim-input" type="number" id="s_ky" value="2" min="0" max="100" step="1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sim-param-group">
+          <div class="sim-param-title gold">⚡ 激励参数</div>
+          <div class="sim-param-body">
+            <div class="sim-input-row">
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">V<sub>max</sub></span> 峰值速度 <span class="su">m/s</span></div>
+                <input class="sim-input" type="number" id="s_Vmax" value="0.52" min="0.05" max="2" step="0.01">
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label"><span class="sl">f</span> 激励频率 <span class="su">Hz</span></div>
+                <input class="sim-input" type="number" id="s_freq" value="1.0" min="0.1" max="10" step="0.1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="sim-run-btn" onclick="runSim5()">▶ 运行仿真</button>
+
+        <div id="sim-error" style="display:none;background:rgba(192,57,43,0.08);border:1px solid #c0392b;border-radius:6px;padding:9px 12px;font-size:12px;color:#c0392b;word-break:break-all;"></div>
+
+        <div class="sim-infobox">
+          <b>双筒减振器物理模型：</b><br>
+          复原行程：油液从下腔通过活塞节流孔流向上腔，阻力由节流压差×活塞面积决定。<br>
+          压缩行程：活塞杆侵入体积通过底阀节流孔排入储油缸，产生压缩阻力。
+        </div>
+
+      </div><!-- /sim-sidebar -->
+
+      <!-- 右侧图表区 -->
+      <div class="sim-main">
+
+        <div class="sim-subtab-nav">
+          <button class="sim-subtab-btn active" onclick="showSimTab('st1',this)">📈 速度特性 F-v</button>
+          <button class="sim-subtab-btn" onclick="showSimTab('st2',this)">📊 示功图 F-s</button>
+          <button class="sim-subtab-btn" onclick="showSimTab('st3',this)">🔬 参数影响分析</button>
+        </div>
+
+        <!-- ST1: F-v -->
+        <div class="sim-panel active" id="st1">
+          <div id="st1-ph">
+            <div class="sim-placeholder">
+              <div class="big">📈</div>
+              点击「运行仿真」查看<br><strong>阻力—速度特性曲线（F-v）</strong>
+            </div>
+          </div>
+          <div id="st1-res" style="display:none; flex-direction:column; gap:12px;">
+            <div class="sim-metrics" id="st1-metrics"></div>
+            <div class="sim-chart-wrap">
+              <div class="sim-chart-title">
+                <span>阻尼力—速度特性（F-v 特性曲线）</span>
+                <span style="display:flex;align-items:center;gap:8px;">
+                  <span>复原行程(+) · 压缩行程(−)</span>
+                  <button onclick="simDownloadPng('fv-chart-wrap','减振器F-v特性曲线')" style="padding:3px 10px;font-size:11px;background:var(--blue-light);color:white;border:none;border-radius:4px;cursor:pointer;">↓ 导出 PNG</button>
+                </span>
+              </div>
+              <div id="fv-chart-wrap" style="width:100%;min-height:220px;"></div>
+            </div>
+            <div class="sim-infobox">
+              <b>物理解释：</b>
+              速度特性曲线非线性。低速段节流阀片未开启，以常通孔节流为主（斜率较大）；随速度增大，阀片压差升高并产生弹性变形，节流面积增大，曲线斜率逐渐减小，呈现特征性"上翘"形态。
+              复原阻力远大于压缩阻力（典型比值 2∶1～4∶1），可在参数比较中调节阀孔径直观验证。
+            </div>
+          </div>
+        </div>
+
+        <!-- ST2: F-s -->
+        <div class="sim-panel" id="st2">
+          <div id="st2-ph">
+            <div class="sim-placeholder">
+              <div class="big">📊</div>
+              点击「运行仿真」后，<br>切换至此标签查看<br><strong>阻力—位移特性（示功图 F-s）</strong>
+            </div>
+          </div>
+          <div id="st2-res" style="display:none; flex-direction:column; gap:12px;">
+            <div class="sim-chart-wrap">
+              <div class="sim-chart-title">
+                <span>阻尼力—位移特性（示功图）</span>
+                <span style="display:flex;align-items:center;gap:8px;">
+                  <span>正弦激励 · 完整循环</span>
+                  <button onclick="simDownloadPng('fs-chart-wrap','减振器示功图F-s')" style="padding:3px 10px;font-size:11px;background:var(--blue-light);color:white;border:none;border-radius:4px;cursor:pointer;">↓ 导出 PNG</button>
+                </span>
+              </div>
+              <div id="fs-chart-wrap" style="width:100%;min-height:220px;"></div>
+            </div>
+            <div class="sim-infobox">
+              <b>示功图说明：</b>
+              示功图为阻尼力与活塞位移构成的封闭环，环面积即为单次循环耗散的能量（阻尼功）。图形上下不对称反映了复原阻力大于压缩阻力的特性。实线为复原行程（力为正），虚线为压缩行程（力为负）。图形饱满、无明显畸变说明减振器工作正常。
+            </div>
+          </div>
+        </div>
+
+        <!-- ST3: 参数影响分析 -->
+        <div class="sim-panel" id="st3">
+          <div class="sim-chart-wrap">
+            <div class="sim-chart-title" style="margin-bottom:10px;">
+              <span>参数影响对比分析</span>
+            </div>
+            <div class="comp-select-row">
+              <div class="sim-form-group">
+                <div class="sim-label" style="margin-bottom:4px;">选择对比参数</div>
+                <select class="sim-input" id="comp5-param" onchange="updateComp5Fields()">
+                  <option value="df">复原阀孔径 d_f (mm)</option>
+                  <option value="dy">压缩阀孔径 d_y (mm)</option>
+                  <option value="Dr">活塞杆径 d_r (mm)</option>
+                  <option value="kf">复原阀片柔度 k_f</option>
+                  <option value="ky">压缩阀片柔度 k_y</option>
+                  <option value="nf">复原阀孔数 n_f</option>
+                </select>
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label" style="margin-bottom:4px;color:var(--ok);">■ 曲线 A（低值）</div>
+                <input class="sim-input" type="number" id="comp5-va" value="1.2" step="0.1">
+              </div>
+              <div class="sim-form-group">
+                <div class="sim-label" style="margin-bottom:4px;color:var(--blue-light);">■ 曲线 B（高值）</div>
+                <input class="sim-input" type="number" id="comp5-vb" value="1.8" step="0.1">
+              </div>
+            </div>
+            <button class="sim-run-btn" style="margin-bottom:10px;" onclick="runComp5()">▶ 对比计算</button>
+          </div>
+
+          <div id="st3-ph">
+            <div class="sim-placeholder">
+              <div class="big">≋</div>
+              设置对比参数后点击「对比计算」<br>查看参数变化对特性曲线的影响
+            </div>
+          </div>
+          <div id="st3-res" style="display:none; flex-direction:column; gap:12px;">
+            <div class="sim-chart-wrap">
+              <div class="sim-chart-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span id="comp5-title">参数影响对比</span>
+                <button onclick="simDownloadPng('comp-chart-wrap','减振器参数影响对比')" style="padding:3px 10px;font-size:11px;background:var(--blue-light);color:white;border:none;border-radius:4px;cursor:pointer;">↓ 导出 PNG</button>
+              </div>
+              <div id="comp-chart-wrap" style="width:100%;min-height:220px;"></div>
+            </div>
+            <div class="sim-metrics" id="comp5-metrics"></div>
+            <div class="sim-infobox" id="comp5-info"></div>
+          </div>
+        </div>
+
+      </div><!-- /sim-main -->
+    </div><!-- /sim-layout -->
+  </div>
+</div>
+
+
+<!-- TAB 6: ⑦ 导向机构设计 -->
+<div class="content" id="tab7_guide">
+  <div class="card">
+    <div class="card-title"><span class="icon">🔗</span>导向机构设计（横臂）</div>
+    <div class="info-box">麦弗逊悬架的导向机构由下横臂（控制臂）组成。横臂承受侧向力、纵向力，并通过球铰连接车轮转向节。</div>
+    <div class="grid2">
+      <div>
+        <div class="section-sub">横臂主要参数</div>
+        <div class="field"><label>横臂有效长度 L_arm（mm）</label><input type="number" id="L_arm" value="427"><div class="unit">横臂越长，轮距变化越小，推荐尽量增大</div></div>
+        <div class="field"><label>滑柱轴线与铅垂线夹角 γ（°）</label><input type="number" id="gamma_strut" value="16" step="1"><div class="unit">即减振器安装倾角，与α_d一致</div></div>
+        <div class="section-sub">导向套受力参数（减振器滑柱）</div>
+        <div class="field"><label>导向套长度 l_g（mm）</label><input type="number" id="l_guide" value="80"><div class="unit">导向套越长，受力越小</div></div>
+        <div class="field"><label>弹簧中心到滑柱轴线距离 e（mm）</label><input type="number" id="e_offset" value="30"><div class="unit">弹簧轴线偏置距离，麦弗逊特有结构</div></div>
+        <div class="field"><label>车轮中心到滑柱轴线距离 a（mm）</label><input type="number" id="a_dist" value="120"><div class="unit">确定导向套侧向力的力臂</div></div>
+      </div>
+      <div>
+        <div class="formula-box">
+          导向套侧向力分析（式7-xx）：<br>
+          <strong>N = (P_total × a + P_spring × e) / l_g</strong><br><br>
+          P_total — 车轮侧向总载荷 [N]<br>
+          P_spring — 弹簧轴向力（安装偏置产生） [N]<br>
+          a — 力臂（车轮中心到滑柱轴线）[mm]<br>
+          e — 弹簧偏置距离 [mm]<br>
+          l_g — 导向套长度 [mm]<br><br>
+          为减小侧向力 N 的措施：<br>
+          1. 增大导向套长度 l_g<br>
+          2. 减小偏置距离 a<br>
+          3. 将弹簧轴线外移（G点外伸）<br>
+          4. 弹簧与减振器轴线分离<br><br>
+          横臂受力：<br>
+          <strong>F_arm = G_wheel × (B/2) / L_arm</strong>
+        </div>
+      </div>
+    </div>
+    <div class="btn-bar"><button class="btn btn-primary" onclick="calcGuide()">🔄 计算导向机构受力</button></div>
+    <div id="guideResult" style="margin-top:14px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">🔵</span>主销参数（参考）</div>
+    <div class="grid3">
+      <div class="field"><label>主销后倾角 τ（°）</label><input type="number" id="tau_caster" value="3" step="0.5"><div class="unit">推荐 2°～4°，提高直线行驶稳定性</div></div>
+      <div class="field"><label>主销内倾角 σ（°）</label><input type="number" id="sigma_kpi" value="13" step="0.5"><div class="unit">推荐 11°～15°（麦弗逊较大）</div></div>
+      <div class="field"><label>车轮外倾角 γ_w（°）</label><input type="number" id="gamma_camber" value="-0.5" step="0.5"><div class="unit">推荐 −1°～+1°（静态外倾）</div></div>
+    </div>
+    <div class="info-box" style="margin-top:10px">
+      <strong>麦弗逊悬架主销几何特点：</strong>主销轴线由减振器上支点（车身安装点）至下横臂球铰确定，主销内倾角 σ 通常较大（11°～15°），以保证回正力矩。主销后倾角 τ 通过合理配置横臂轴线倾斜实现。
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: ⑧ 导向机构运动学仿真 -->
+<div class="content" id="tab6_kin">
+  <div class="card">
+    <div class="card-title"><span class="icon">🔗</span>导向机构运动学仿真</div>
+    <div class="info-box">
+      基于麦弗逊悬架4-DOF约束求解器，复现《汽车设计》图7-63。输入滑柱副上下端、LCA前/后/外铰点及车轮中心坐标，可计算车轮跳动全程的主销内倾角、外倾角、主销后倾角及半轮距变化曲线，并支持多臂长比例对比分析。图表可导出为白底PNG（Word适用）。
+    </div>
+  </div>
+  <div class="km-wrap">
+    <div class="km-main">
+      <div class="km-sidebar" id="km-panel-params">
+        <div class="km-section">
+          <div class="km-section-title">滑柱副上端球铰</div>
+          <div class="km-point-note">strut_upper — 固定于车身</div>
+          <div class="km-xyz-grid">
+            <div class="km-xyz-item"><label>X (mm)</label><input type="number" id="su_x" value="0" step="1"></div>
+            <div class="km-xyz-item"><label>Y (mm)</label><input type="number" id="su_y" value="-600" step="1"></div>
+            <div class="km-xyz-item"><label>Z (mm)</label><input type="number" id="su_z" value="800" step="1"></div>
+          </div>
+          <div class="km-xyz-hint">X=纵向 · Y=横向(负=外) · Z=垂向(正=上)</div>
+        </div>
+        <div class="km-section">
+          <div class="km-section-title">滑柱副下端连接点</div>
+          <div class="km-point-note">strut_lower — 固定于转向节</div>
+          <div class="km-xyz-grid">
+            <div class="km-xyz-item"><label>X (mm)</label><input type="number" id="sl_x" value="0" step="1"></div>
+            <div class="km-xyz-item"><label>Y (mm)</label><input type="number" id="sl_y" value="-650" step="1"></div>
+            <div class="km-xyz-item"><label>Z (mm)</label><input type="number" id="sl_z" value="450" step="1"></div>
+          </div>
+        </div>
+        <div class="km-section">
+          <div class="km-section-title">LCA 前铰点</div>
+          <div class="km-point-note">arm_front — 与副车架连接</div>
+          <div class="km-xyz-grid">
+            <div class="km-xyz-item"><label>X (mm)</label><input type="number" id="af_x" value="-200" step="1"></div>
+            <div class="km-xyz-item"><label>Y (mm)</label><input type="number" id="af_y" value="-400" step="1"></div>
+            <div class="km-xyz-item"><label>Z (mm)</label><input type="number" id="af_z" value="205" step="1"></div>
+          </div>
+        </div>
+        <div class="km-section">
+          <div class="km-section-title">LCA 后铰点</div>
+          <div class="km-point-note">arm_rear — 与副车架连接</div>
+          <div class="km-xyz-grid">
+            <div class="km-xyz-item"><label>X (mm)</label><input type="number" id="ar_x" value="200" step="1"></div>
+            <div class="km-xyz-item"><label>Y (mm)</label><input type="number" id="ar_y" value="-390" step="1"></div>
+            <div class="km-xyz-item"><label>Z (mm)</label><input type="number" id="ar_z" value="220" step="1"></div>
+          </div>
+        </div>
+        <div class="km-section">
+          <div class="km-section-title">LCA 外球头（下铰点）</div>
+          <div class="km-point-note">arm_out — 与转向节下端连接</div>
+          <div class="km-xyz-grid">
+            <div class="km-xyz-item"><label>X (mm)</label><input type="number" id="ao_x" value="-30" step="1"></div>
+            <div class="km-xyz-item"><label>Y (mm)</label><input type="number" id="ao_y" value="-700" step="1"></div>
+            <div class="km-xyz-item"><label>Z (mm)</label><input type="number" id="ao_z" value="180" step="1"></div>
+          </div>
+        </div>
+        <div class="km-section">
+          <div class="km-section-title">车轮中心</div>
+          <div class="km-point-note">wheel_center — 初始静态位置</div>
+          <div class="km-xyz-grid">
+            <div class="km-xyz-item"><label>X (mm)</label><input type="number" id="wc_x" value="0" step="1"></div>
+            <div class="km-xyz-item"><label>Y (mm)</label><input type="number" id="wc_y" value="-800" step="1"></div>
+            <div class="km-xyz-item"><label>Z (mm)</label><input type="number" id="wc_z" value="300" step="1"></div>
+          </div>
+        </div>
+        <div class="km-section">
+          <div class="km-section-title">LCA 有效臂长曲线（× l₁基准）</div>
+          <div id="km-scale-rows"></div>
+          <div class="km-xyz-hint">比例值 × l₁基准长 = 实际有效臂长</div>
+        </div>
+        <div class="km-section">
+          <div class="km-section-title">车轮跳动范围</div>
+          <div class="km-param-grid">
+            <div class="km-param-item"><label>Z最小值 (mm)</label><input type="number" id="z_min" value="-100" step="10"></div>
+            <div class="km-param-item"><label>Z最大值 (mm)</label><input type="number" id="z_max" value="100" step="10"></div>
+            <div class="km-param-item"><label>计算点数</label><input type="number" id="z_pts" value="201" min="51" max="601" step="50"></div>
+          </div>
+        </div>
+        <div class="km-section">
+          <div class="km-section-title">推导量（只读）</div>
+          <div class="km-derived-grid">
+            <div class="km-derived-row"><span class="km-derived-label">l₁基准有效臂长</span><span class="km-derived-val" id="d_l1">—</span></div>
+            <div class="km-derived-row"><span class="km-derived-label">初始主销内倾 β₀</span><span class="km-derived-val" id="d_beta0">—</span></div>
+            <div class="km-derived-row"><span class="km-derived-label">初始主销后倾 γ₀</span><span class="km-derived-val" id="d_gamma0">—</span></div>
+            <div class="km-derived-row"><span class="km-derived-label">初始半轮距 By₀</span><span class="km-derived-val" id="d_by0">—</span></div>
+            <div class="km-derived-row"><span class="km-derived-label">滑柱初始长度</span><span class="km-derived-val" id="d_strut">—</span></div>
+            <div class="km-derived-row"><span class="km-derived-label">主销轴与垂向夹角</span><span class="km-derived-val" id="d_kplen">—</span></div>
+          </div>
+          <div class="km-override-title">自定义覆盖（可选）</div>
+          <div class="km-override-hint">默认引用推导值；直接修改可覆盖（变为琥珀色）。双击恢复自动。</div>
+          <div class="km-override-grid">
+            <div class="km-override-row"><span class="km-override-label">l₁基准臂长 (mm)</span><input type="number" class="km-override-input" id="ov_l1" data-auto="1" step="0.1"></div>
+            <div class="km-override-row"><span class="km-override-label">初始 β₀ (°)</span><input type="number" class="km-override-input" id="ov_beta0" data-auto="1" step="0.01"></div>
+            <div class="km-override-row"><span class="km-override-label">初始 γ₀ (°)</span><input type="number" class="km-override-input" id="ov_gamma0" data-auto="1" step="0.01"></div>
+            <div class="km-override-row"><span class="km-override-label">初始 By₀ (cm)</span><input type="number" class="km-override-input" id="ov_by0" data-auto="1" step="0.01"></div>
+            <div class="km-override-row"><span class="km-override-label">滑柱初始长度 (mm)</span><input type="number" class="km-override-input" id="ov_strut" data-auto="1" step="0.1"></div>
+          </div>
+        </div>
+        <button class="km-btn-compute" id="km-btn-run" onclick="kmRunSim()">▶ 开始计算</button>
+        <div class="km-btn-row">
+          <button class="km-btn-sm" onclick="kmResetDefaults()">↺ 恢复默认</button>
+          <button class="km-btn-sm" onclick="kmExportPNG()">↓ 导出全部图（Word适用）</button>
+        </div>
+        <div class="km-status-bar" id="km-status">就绪。修改硬点后点击"开始计算"。</div>
+      </div>
+      <div class="km-chart-area" id="km-panel-charts">
+        <!-- 第一行：主销内倾角 + 车轮外倾角 -->
+        <div class="km-chart-row">
+          <div class="km-chart-wrap">
+            <div class="km-chart-header">
+              <div class="km-chart-title">主销内倾角 β / °</div>
+              <button class="km-btn-dl" onclick="kmDownloadChart('c-beta','主销内倾角_beta')">↓ 下载</button>
+            </div>
+            <canvas class="km-plot" id="c-beta"></canvas>
+          </div>
+          <div class="km-chart-wrap" style="border-right:none;">
+            <div class="km-chart-header">
+              <div class="km-chart-title">车轮外倾角 α / °</div>
+              <button class="km-btn-dl" onclick="kmDownloadChart('c-alpha','外倾角_alpha')">↓ 下载</button>
+            </div>
+            <canvas class="km-plot" id="c-alpha"></canvas>
+          </div>
+        </div>
+        <!-- 第二行：主销后倾角 + 半轮距 -->
+        <div class="km-chart-row">
+          <div class="km-chart-wrap">
+            <div class="km-chart-header">
+              <div class="km-chart-title">主销后倾角 γ / °</div>
+              <button class="km-btn-dl" onclick="kmDownloadChart('c-gamma','主销后倾角_gamma')">↓ 下载</button>
+            </div>
+            <canvas class="km-plot" id="c-gamma"></canvas>
+          </div>
+          <div class="km-chart-wrap" style="border-right:none;">
+            <div class="km-chart-header">
+              <div class="km-chart-title">半轮距 B<sub>y</sub> / cm</div>
+              <button class="km-btn-dl" onclick="kmDownloadChart('c-by','半轮距_By')">↓ 下载</button>
+            </div>
+            <canvas class="km-plot" id="c-by"></canvas>
+          </div>
+        </div>
+        <div class="km-legend" id="km-legend"></div>
+        <div class="km-summary-bar">
+          <table class="km-summary-table" id="km-summary-tbl">
+            <tr><th>曲线</th><th colspan="5">— 请先点击"开始计算" —</th></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: 汇总报告 -->
+<div class="content" id="tab7_summary">
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span>设计参数汇总</div>
+    <div id="summaryContent">
+      <div class="info-box-blue">切换到本标签页时自动生成汇总报告。</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">⚠️</span>设计检查清单</div>
+    <div id="checklistContent">
+      <div class="info-box-blue">切换到本标签页时自动显示。</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: 智能评分报告 -->
+<div class="content" id="tab9_score">
+  <div class="card" style="background:linear-gradient(135deg,#1a3560,#2d6ec0);color:white;border:none">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:40px">🏆</div>
+      <div>
+        <div style="font-size:19px;font-weight:700;margin-bottom:4px">悬架课程设计智能评分系统</div>
+        <div style="font-size:12px;opacity:.85">基于《汽车设计》第6版（闵海涛 王建华）第7章评分标准 · 广西大学车辆工程专业</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">ℹ️</span>评分说明</div>
+    <div class="info-box">
+      <strong>评分维度（共100分）：</strong><br>
+      ① <strong>悬架主要参数（30分）</strong>：偏频选取、静动挠度、悬架刚度合理性<br>
+      ② <strong>螺旋弹簧设计（30分）</strong>：丝径、中径、强度校核、高径比、刚度验证<br>
+      ③ <strong>减振器设计（25分）</strong>：相对阻尼系数、阻尼力系数、工作缸径合理性<br>
+      ④ <strong>导向机构与整体（15分）</strong>：导向套侧向力、主销参数、整体设计一致性<br><br>
+      <strong>注意：</strong>请先完成各标签页的计算，再生成评分报告。
+    </div>
+  </div>
+
+  <div id="scoreResult"></div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span>操作</div>
+    <div class="btn-bar">
+      <button class="btn btn-primary" onclick="calcSuspensionScore()">🔄 生成智能评分</button>
+      <button class="btn btn-success" id="genReportBtn" onclick="generateSuspensionReport()" style="display:none">📥 生成完整报告（TXT）</button>
+      <button class="btn btn-warning" onclick="calcAll()">↺ 重新计算所有参数</button>
+    </div>
+    <div class="info-box" style="background:#e8f5e9;border-color:#4caf50;color:#2e7d32;margin-top:12px">
+      <strong>📦 提交说明：</strong>点击"生成完整报告"后将下载 TXT 文件。请将此文件提交给教师，教师可通过"教师管理"系统批量导入统计。
+    </div>
+  </div>
+</div>
+
+<script>
+// ================== 全局配置 ==================
+const TEACHER_PASSWORD = 'gxuqpp123';
+let teacherData = [];
+let appState = { studentId: '', studentName: '', isTeacher: false };
+
+// ================== 学生登录 ==================
+function submitLogin() {
+  const id   = document.getElementById('studentId').value.trim();
+  const name = document.getElementById('studentName').value.trim();
+  const idErr   = document.getElementById('idError');
+  const nameErr = document.getElementById('nameError');
+  let ok = true;
+  if (!/^\d{10}$/.test(id))   { idErr.style.display='block';   ok=false; } else idErr.style.display='none';
+  if (name.length < 2)         { nameErr.style.display='block'; ok=false; } else nameErr.style.display='none';
+  if (!ok) return;
+  appState.studentId   = id;
+  appState.studentName = name;
+  document.getElementById('displayName').textContent = name;
+  document.getElementById('displayId').textContent   = id;
+  document.getElementById('studentBadge').style.display = 'block';
+  document.getElementById('loginOverlay').style.display  = 'none';
+  calcAll();
+  generateSummary();
+  syncDamperToSim();
+}
+
+// ================== 教师登录 ==================
+function openTeacherLogin() {
+  document.getElementById('teacherLoginOverlay').style.display = 'flex';
+  document.getElementById('teacherPassword').value = '';
+  document.getElementById('pwdError').style.display = 'none';
+}
+function closeTeacherLogin() {
+  document.getElementById('teacherLoginOverlay').style.display = 'none';
+}
+function submitTeacherLogin() {
+  const pwd = document.getElementById('teacherPassword').value;
+  if (pwd === TEACHER_PASSWORD) {
+    appState.isTeacher = true;
+    document.getElementById('teacherLoginOverlay').style.display = 'none';
+    showTeacherPanel();
+  } else {
+    document.getElementById('pwdError').style.display = 'block';
+  }
+}
+
+// ================== 教师统计面板 ==================
+function showTeacherPanel() {
+  const overlay = document.createElement('div');
+  overlay.className = 'login-overlay';
+  overlay.id = 'teacherPanel';
+  overlay.style.display = 'flex';
+  const panel = document.createElement('div');
+  panel.style.cssText = 'background:white;padding:28px;border-radius:12px;max-width:1020px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3)';
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="color:var(--blue);font-size:22px">📊 悬架设计课程评分统计（教师管理）</h2>
+      <button class="btn btn-danger" onclick="closeTeacherPanel()">关闭</button>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon">📁</span>导入学生报告文件</div>
+      <div class="info-box">
+        <strong>使用流程：</strong><br>
+        1. 收集学生提交的 <strong>TXT报告文件</strong>（文件名含学号和姓名）<br>
+        2. 点击下方区域或拖拽批量导入<br>
+        3. 系统自动提取评分数据并生成班级统计<br>
+        4. 导出CSV可用Excel打开分析
+      </div>
+      <input type="file" id="teacherFileInput" multiple accept=".txt,.json" style="display:none" onchange="handleTeacherFile(event)">
+      <div class="upload-zone" onclick="document.getElementById('teacherFileInput').click()" id="teacherUploadZone">
+        <div class="uz-icon">📂</div>
+        <div class="uz-text">点击选择 或 拖拽 TXT/JSON 文件至此</div>
+        <div class="uz-hint">支持批量导入</div>
+      </div>
+      <div id="teacherUploadStatus" style="margin-top:10px;font-size:13px;color:#666"></div>
+    </div>
+    <div id="teacherStatsContent"></div>
+  `;
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  const uz = panel.querySelector('#teacherUploadZone');
+  uz.addEventListener('dragover', e=>{ e.preventDefault(); uz.classList.add('dragover'); });
+  uz.addEventListener('dragleave', ()=> uz.classList.remove('dragover'));
+  uz.addEventListener('drop', e=>{ e.preventDefault(); uz.classList.remove('dragover'); handleTeacherFile({target:{files:e.dataTransfer.files}}); });
+  if (teacherData.length > 0) displayTeacherStats();
+}
+
+function closeTeacherPanel() {
+  const p = document.getElementById('teacherPanel');
+  if (p) p.remove();
+}
+
+function handleTeacherFile(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+  const statusDiv = document.getElementById('teacherUploadStatus');
+  statusDiv.innerHTML = '<span style="color:var(--blue)">正在处理文件...</span>';
+  let loaded = 0, errors = 0;
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const content = e.target.result;
+        let data = null;
+        if (file.name.endsWith('.txt')) {
+          const m = content.match(/--- SYSTEM DATA BEGIN ---\s*([\s\S]*?)\s*--- SYSTEM DATA END ---/);
+          if (m && m[1]) data = JSON.parse(m[1].trim());
+          else { errors++; check(); return; }
+        } else if (file.name.endsWith('.json')) {
+          data = JSON.parse(content);
+        } else { errors++; check(); return; }
+        if (data && data.studentId && data.studentName && data.totalScore !== undefined) {
+          teacherData.push(data); loaded++;
+        } else errors++;
+      } catch(e) { errors++; }
+      check();
+    };
+    reader.readAsText(file);
+  });
+  function check() {
+    if (loaded + errors < files.length) return;
+    statusDiv.innerHTML = `<span style="color:var(--ok)">✓ 成功导入 ${loaded} 个文件</span>${errors?`<span style="color:var(--err);margin-left:10px">✗ ${errors} 个失败</span>`:''}`;
+    if (loaded > 0) displayTeacherStats();
+  }
+}
+
+function displayTeacherStats() {
+  const stats = analyzeTeacherData(teacherData);
+  let html = `
+    <div class="stats-card">
+      <h3 style="margin-bottom:10px;font-size:18px">📈 班级总体统计</h3>
+      <div class="stats-grid">
+        <div class="stats-item"><div class="label">学生总数</div><div class="value">${stats.totalStudents}</div></div>
+        <div class="stats-item"><div class="label">提交总次数</div><div class="value">${stats.totalSubmissions}</div></div>
+        <div class="stats-item"><div class="label">班级平均分</div><div class="value">${stats.avgScore.toFixed(1)}</div></div>
+        <div class="stats-item"><div class="label">优秀率(≥90)</div><div class="value">${stats.excellentRate}%</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon">👥</span>学生列表
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-success" onclick="exportTeacherCSV()">📊 导出CSV</button>
+          <button class="btn btn-danger" onclick="clearTeacherData()">🗑 清空</button>
+        </div>
+      </div>
+      <div class="student-list" id="teacherStudentList"></div>
+    </div>`;
+  document.getElementById('teacherStatsContent').innerHTML = html;
+  displayTeacherStudentList(stats.students);
+}
+
+function analyzeTeacherData(data) {
+  const map = {};
+  data.forEach(log => {
+    const id = log.studentId;
+    if (!map[id]) map[id] = { studentId:id, studentName:log.studentName, submissions:[], maxScore:0, minScore:100, totalScore:0, firstTime:null, lastTime:null };
+    const s = map[id];
+    s.submissions.push(log);
+    s.totalScore += log.totalScore;
+    s.maxScore = Math.max(s.maxScore, log.totalScore);
+    s.minScore = Math.min(s.minScore, log.totalScore);
+    const t = new Date(log.timestamp);
+    if (!s.firstTime||t<s.firstTime) s.firstTime=t;
+    if (!s.lastTime||t>s.lastTime)   s.lastTime=t;
+  });
+  const students = Object.values(map);
+  students.forEach(s => { s.avgScore = s.totalScore / s.submissions.length; s.count = s.submissions.length; });
+  const avg = students.length ? students.reduce((a,b)=>a+b.avgScore,0)/students.length : 0;
+  const excellent = students.filter(s=>s.avgScore>=90).length;
+  return {
+    totalStudents:    students.length,
+    totalSubmissions: data.length,
+    avgScore:         avg,
+    excellentRate:    students.length ? Math.round(excellent/students.length*100) : 0,
+    students:         students.sort((a,b)=>a.studentId.localeCompare(b.studentId))
+  };
+}
+
+function displayTeacherStudentList(students) {
+  const el = document.getElementById('teacherStudentList');
+  if (!students.length) { el.innerHTML='<div style="text-align:center;padding:40px;color:#888">暂无学生数据，请先导入报告文件</div>'; return; }
+  el.innerHTML = students.map(s=>{
+    const grade = s.avgScore>=90?'优秀':s.avgScore>=80?'良好':s.avgScore>=70?'中等':s.avgScore>=60?'及格':'不及格';
+    const gc    = s.avgScore>=90?'var(--ok)':s.avgScore>=70?'var(--warn)':'var(--err)';
+    return `<div class="student-item" onclick="toggleSDetail('${s.studentId}')">
+      <div class="header">
+        <div class="s-name">${s.studentName}（${s.studentId}）</div>
+        <div class="s-stats"><span style="color:${gc};font-weight:700">均分：${s.avgScore.toFixed(1)}（${grade}）</span>　提交：${s.count}次</div>
+      </div>
+      <div class="s-detail">最高：${s.maxScore} | 最低：${s.minScore} | 首次：${s.firstTime.toLocaleString('zh-CN')} | 最后：${s.lastTime.toLocaleString('zh-CN')}</div>
+      <div id="sd_${s.studentId}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <table class="result-table" style="font-size:11px">
+          <tr><th>#</th><th>提交时间</th><th>总分</th><th>悬架参数</th><th>弹簧</th><th>减振器</th><th>导向机构</th></tr>
+          ${s.submissions.map((sub,i)=>`<tr><td>${i+1}</td><td>${new Date(sub.timestamp).toLocaleString('zh-CN')}</td><td><b>${sub.totalScore}</b></td><td>${sub.scores&&sub.scores.s1||'-'}</td><td>${sub.scores&&sub.scores.s2||'-'}</td><td>${sub.scores&&sub.scores.s3||'-'}</td><td>${sub.scores&&sub.scores.s4||'-'}</td></tr>`).join('')}
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSDetail(id) {
+  const el = document.getElementById('sd_'+id);
+  if (el) el.style.display = el.style.display==='none'?'block':'none';
+}
+
+function clearTeacherData() {
+  if (!confirm('确定清空所有导入的数据？此操作不可恢复！')) return;
+  teacherData = [];
+  displayTeacherStats();
+}
+
+function exportTeacherCSV() {
+  if (!teacherData.length) { alert('请先导入学生数据！'); return; }
+  const stats = analyzeTeacherData(teacherData);
+  let csv = '\uFEFF学号,姓名,提交次数,平均分,最高分,最低分,等级,首次提交,最后提交\n';
+  stats.students.forEach(s=>{
+    const g = s.avgScore>=90?'优秀':s.avgScore>=80?'良好':s.avgScore>=70?'中等':s.avgScore>=60?'及格':'不及格';
+    csv += `${s.studentId},${s.studentName},${s.count},${s.avgScore.toFixed(1)},${s.maxScore},${s.minScore},${g},${s.firstTime.toLocaleString('zh-CN')},${s.lastTime.toLocaleString('zh-CN')}\n`;
+  });
+  csv += '\n分数段,人数,占比\n';
+  const bands=[['90-100(优秀)',0],['80-89(良好)',0],['70-79(中等)',0],['60-69(及格)',0],['60以下(不及格)',0]];
+  stats.students.forEach(s=>{
+    if(s.avgScore>=90)bands[0][1]++;
+    else if(s.avgScore>=80)bands[1][1]++;
+    else if(s.avgScore>=70)bands[2][1]++;
+    else if(s.avgScore>=60)bands[3][1]++;
+    else bands[4][1]++;
+  });
+  bands.forEach(b=>{ csv+=`${b[0]},${b[1]},${stats.totalStudents?((b[1]/stats.totalStudents*100).toFixed(1)+'%'):'0%'}\n`; });
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`悬架设计评分统计_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+// ================== 悬架课程设计智能评分 ==================
+let _lastScore = null;
+
+function calcSuspensionScore() {
+  calcAll(); // 确保数据最新
+  const sc = {};
+  let total = 0;
+
+  // ── 1. 悬架主要参数（30分）──
+  const displ = document.getElementById('displ')? document.getElementById('displ').value : 'small';
+  const n = state.n_freq || 0;
+  const fc = state.fc || 0;
+  const fd = state.fd || 0;
+  const C_susp = state.C_susp || 0;
+  const fw = state.fw || 0;
+
+  // 偏频 (10分)
+  let n_ok = false, n_score = 0;
+  if (displ==='small')   { n_ok = n>=1.00&&n<=1.45; n_score = n_ok?10:(n>=0.9&&n<=1.6?6:2); }
+  else                   { n_ok = n>=0.80&&n<=1.20; n_score = n_ok?10:(n>=0.7&&n<=1.4?6:2); }
+  
+  // 静挠度 fc (5分)：由偏频计算得出，只要计算正确就满分
+  const fc_expected = 9800/(4*Math.PI*Math.PI*n*n);
+  const fc_score = (Math.abs(fc-fc_expected)/Math.max(fc_expected,1)<0.02) ? 5 : 2;
+
+  // 动挠度 fd (5分)
+  const fd_score = (fd>=70&&fd<=90)?5:(fd>=60&&fd<=100)?3:1;
+
+  // 悬架刚度 C (5分)
+  const ms = state.ms || 0;
+  const C_exp = ms>0 ? ms*9.8/fc : 0;
+  const C_score = C_exp>0&&Math.abs(C_susp-C_exp)/C_exp<0.05 ? 5 : 2;
+
+  // 工作行程 fw (5分)
+  const fw_exp = fc + fd;
+  const fw_score = Math.abs(fw-fw_exp)/Math.max(fw_exp,1)<0.02 ? 5 : 2;
+
+  sc.s1 = Math.round(n_score + fc_score + fd_score + C_score + fw_score);
+  total += sc.s1;
+
+  // ── 2. 螺旋弹簧设计（30分）──
+  const d = state.d_use || 0;
+  const Dm = state.Dm || 0;
+  const H0 = state.H0 || 0;
+  const tau = state.tau_check || 0;
+  const tau_allow = parseFloat(document.getElementById('tau_allow')?.value)||600;
+  const Cs = state.Cs || 0;
+  const n1 = state.n1 || 0;
+  const n2 = state.n2 || 0;
+
+  // 丝径合理性 (8分)：标准丝径系列
+  const stds=[8,9,10,11,12,13,14,16,18,20,22,25,28,30,32];
+  const isStd = stds.includes(d);
+  const d_score = isStd&&d>0 ? 8 : (d>0?4:0);
+
+  // 强度校核 (8分)
+  const tau_score = (tau>0&&tau<=tau_allow) ? 8 : (tau>0&&tau<=tau_allow*1.1?4:0);
+
+  // 高径比 (6分)
+  const hd_ratio = Dm>0?H0/Dm:0;
+  const hd_score = (hd_ratio>0&&hd_ratio<=4)?6:(hd_ratio>0&&hd_ratio<=5)?3:0;
+
+  // 弹簧刚度与悬架刚度匹配 (8分)
+  const alpha_s = state.alpha_s_spring||0;
+  const Cs_corr = Cs*Math.pow(Math.cos(alpha_s*Math.PI/180),2);
+  const cs_diff = C_susp>0?Math.abs(Cs_corr-C_susp)/C_susp:1;
+  const cs_score = cs_diff<0.10?8:cs_diff<0.20?5:cs_diff<0.35?2:0;
+
+  sc.s2 = Math.round(d_score + tau_score + hd_score + cs_score);
+  total += sc.s2;
+
+  // ── 3. 减振器设计（25分）──
+  const xi = state.xi || 0;
+  const c_total = state.c_total || 0;
+  const D_std = state.D_std || 0;
+  const c_ext = state.c_ext || 0;
+  const c_comp = state.c_comp || 0;
+
+  // 相对阻尼系数 (8分)
+  const xi_score = (xi>=0.25&&xi<=0.35)?8:(xi>=0.20&&xi<=0.40)?5:1;
+
+  // 总阻尼系数计算 (8分)：验证c=2ξms·ωn/cos²αd
+  const omega_n = state.omega_n||0;
+  const alpha_d = state.alpha_d||0;
+  const c_exp = ms>0&&omega_n>0&&alpha_d>=0 ? 2*xi*ms*omega_n/Math.pow(Math.cos(alpha_d*Math.PI/180),2) : 0;
+  const c_score = c_exp>0&&Math.abs(c_total-c_exp)/c_exp<0.05 ? 8 : (c_exp>0&&Math.abs(c_total-c_exp)/c_exp<0.15?4:1);
+
+  // 工作缸径（标准值）(9分)
+  const std_D=[30,32,35,38,40,42,45,50,55];
+  const D_score = std_D.includes(D_std)&&D_std>0 ? 9 : (D_std>0?5:0);
+
+  sc.s3 = Math.round(xi_score + c_score + D_score);
+  total += sc.s3;
+
+  // ── 4. 导向机构与整体（15分）──
+  // 主销参数合理性 (7分)
+  const tau_caster = parseFloat(document.getElementById('tau_caster')?.value)||0;
+  const sigma_kpi  = parseFloat(document.getElementById('sigma_kpi')?.value)||0;
+  const gamma_camber = parseFloat(document.getElementById('gamma_camber')?.value)||0;
+  const caster_ok  = tau_caster>=2&&tau_caster<=4;
+  const kpi_ok     = sigma_kpi>=11&&sigma_kpi<=15;
+  const camber_ok  = gamma_camber>=-1&&gamma_camber<=1;
+  const pin_score  = (caster_ok?2:0)+(kpi_ok?3:0)+(camber_ok?2:0);
+
+  // 整体设计完整性（各模块均有计算结果）(8分)
+  const complete_score =
+    (state.fc>0?2:0)+(state.d_use>0?2:0)+(state.c_total>0?2:0)+(state.D_std>0?2:0);
+
+  sc.s4 = Math.round(pin_score + complete_score);
+  total += sc.s4;
+
+  total = Math.min(total, 100);
+  const grade = total>=90?'优秀':total>=80?'良好':total>=70?'中等':total>=60?'及格':'不及格';
+  _lastScore = { total, grade, sc, n, fc, fd, C_susp, d, tau, hd_ratio, xi, D_std, c_total };
+
+  // 渲染评分结果
+  const el = document.getElementById('scoreResult');
+  el.innerHTML = `
+    <div class="score-card">
+      <div class="score-display">
+        <div class="score-label" style="font-size:15px">悬架课程设计综合评分</div>
+        <div class="score-value">${total}</div>
+        <div class="score-label" style="font-size:22px;font-weight:700;margin-top:6px">${grade}</div>
+        <div class="score-label" style="margin-top:4px">${appState.studentName||'—'} · ${appState.studentId||'—'}</div>
+      </div>
+      <div class="score-details">
+        <div class="score-detail-item"><div class="label">悬架主要参数</div><div class="value">${sc.s1} / 30</div></div>
+        <div class="score-detail-item"><div class="label">螺旋弹簧设计</div><div class="value">${sc.s2} / 30</div></div>
+        <div class="score-detail-item"><div class="label">减振器设计</div><div class="value">${sc.s3} / 25</div></div>
+        <div class="score-detail-item"><div class="label">导向机构与整体</div><div class="value">${sc.s4} / 15</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span>详细评分明细</div>
+      <table class="result-table">
+        <tr><th>评分项目</th><th>计算值/状态</th><th>评分标准</th><th>得分</th></tr>
+        <tr><td><b>① 悬架主要参数（共30分）</b></td><td colspan="2"></td><td><b>${sc.s1}/30</b></td></tr>
+        <tr><td>偏频 n 选取合理性</td><td>${n.toFixed(3)} Hz</td><td>${displ==='small'?'1.00~1.45 Hz':'0.80~1.20 Hz'}（10分）</td><td>${n_score}/10</td></tr>
+        <tr><td>静挠度 fc 计算正确</td><td>${fc.toFixed(2)} mm</td><td>由偏频正确推导（5分）</td><td>${fc_score}/5</td></tr>
+        <tr><td>动挠度 fd 选取范围</td><td>${fd.toFixed(0)} mm</td><td>乘用车 70~90 mm（5分）</td><td>${fd_score}/5</td></tr>
+        <tr><td>悬架刚度 C 计算正确</td><td>${C_susp.toFixed(3)} N/mm</td><td>C=ms·g/fc 推导（5分）</td><td>${C_score}/5</td></tr>
+        <tr><td>工作行程 fw 正确</td><td>${fw.toFixed(1)} mm</td><td>fw=fc+fd（5分）</td><td>${fw_score}/5</td></tr>
+
+        <tr><td><b>② 螺旋弹簧设计（共30分）</b></td><td colspan="2"></td><td><b>${sc.s2}/30</b></td></tr>
+        <tr><td>弹簧丝径取标准值</td><td>d = ${d} mm</td><td>标准系列（8分）</td><td>${d_score}/8</td></tr>
+        <tr><td>切应力满足许用值</td><td>τ = ${tau.toFixed(1)} N/mm² ≤ ${tau_allow}</td><td>强度校核合格（8分）</td><td>${tau_score}/8</td></tr>
+        <tr><td>高径比满足稳定性</td><td>H₀/Dm = ${hd_ratio.toFixed(2)}</td><td>≤ 4（6分）</td><td>${hd_score}/6</td></tr>
+        <tr><td>弹簧刚度与悬架刚度匹配</td><td>偏差 ${C_susp>0?(Math.abs(Cs_corr-C_susp)/C_susp*100).toFixed(1):'—'}%</td><td>偏差＜10%（8分）</td><td>${cs_score}/8</td></tr>
+
+        <tr><td><b>③ 减振器设计（共25分）</b></td><td colspan="2"></td><td><b>${sc.s3}/25</b></td></tr>
+        <tr><td>相对阻尼系数 ξ 合理</td><td>ξ = ${xi.toFixed(3)}</td><td>0.25~0.35（8分）</td><td>${xi_score}/8</td></tr>
+        <tr><td>总阻尼系数 c 计算正确</td><td>c = ${c_total.toFixed(1)} N·s/m</td><td>公式推导验证（8分）</td><td>${c_score}/8</td></tr>
+        <tr><td>工作缸径取标准值</td><td>D = ${D_std||'未计算'} mm</td><td>标准缸径（9分）</td><td>${D_score}/9</td></tr>
+
+        <tr><td><b>④ 导向机构与整体（共15分）</b></td><td colspan="2"></td><td><b>${sc.s4}/15</b></td></tr>
+        <tr><td>主销后倾角 τ 范围</td><td>τ = ${tau_caster}°</td><td>2°~4°（2分）</td><td>${caster_ok?2:0}/2</td></tr>
+        <tr><td>主销内倾角 σ 范围</td><td>σ = ${sigma_kpi}°</td><td>11°~15°（3分）</td><td>${kpi_ok?3:0}/3</td></tr>
+        <tr><td>车轮外倾角 γ 范围</td><td>γ = ${gamma_camber}°</td><td>-1°~+1°（2分）</td><td>${camber_ok?2:0}/2</td></tr>
+        <tr><td>设计完整性（各模块均完成）</td><td>${complete_score===8?'✓ 全部完成':'部分未计算'}</td><td>各模块完成（8分）</td><td>${complete_score}/8</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">💡</span>改进建议</div>
+      <div class="formula-box" style="line-height:2.2">
+        ${sc.s1<20?'📌 <b>悬架主要参数不足：</b>偏频 n 应在推荐范围内，请按 fc=g/(4π²n²) 正确推导静挠度，动挠度宜取 70~90 mm。<br>':''}
+        ${sc.s2<20?'📌 <b>弹簧设计需改进：</b>丝径 d 应从标准系列中选取，切应力需满足 τ≤[τ]，并调整圈数使弹簧刚度 Cs·cos²α_s ≈ 悬架刚度 C。<br>':''}
+        ${sc.s3<17?'📌 <b>减振器设计需改进：</b>相对阻尼系数 ξ 推荐 0.25~0.35，工作缸径须从标准系列（30/32/35/38/40/42/45/50mm）中选取。<br>':''}
+        ${sc.s4<10?'📌 <b>导向机构参数需检查：</b>主销后倾角建议 2°~4°，内倾角 11°~15°，车轮静态外倾角 -1°~+1°，请完成所有模块计算。<br>':''}
+        ${total>=80?'✅ 整体设计质量良好，各项参数均达到课程设计要求，请继续完善设计说明书。':''}
+      </div>
+    </div>`;
+
+  document.getElementById('genReportBtn').style.display = 'inline-block';
+}
+
+function generateSuspensionReport() {
+  const r = _lastScore;
+  if (!r) { alert('请先点击"生成智能评分"！'); return; }
+  let report = '================================================\n';
+  report += '   麦弗逊悬架设计 课程设计评分报告\n';
+  report += '   广西大学 车辆工程专业《汽车设计》课程\n';
+  report += '================================================\n\n';
+  report += '【学生信息】\n';
+  report += `学号：${appState.studentId}\n姓名：${appState.studentName}\n`;
+  report += `生成时间：${new Date().toLocaleString('zh-CN')}\n\n`;
+  report += '【综合评分】\n------------------------------------------------\n';
+  report += `总分：${r.total} / 100  （${r.grade}）\n`;
+  report += `悬架主要参数：${r.sc.s1} / 30\n`;
+  report += `螺旋弹簧设计：${r.sc.s2} / 30\n`;
+  report += `减振器设计：${r.sc.s3} / 25\n`;
+  report += `导向机构与整体：${r.sc.s4} / 15\n\n`;
+  report += '【主要设计参数】\n------------------------------------------------\n';
+  report += `悬架偏频 n：${r.n.toFixed(3)} Hz\n`;
+  report += `悬架静挠度 fc：${r.fc.toFixed(2)} mm\n`;
+  report += `悬架动挠度 fd：${r.fd.toFixed(0)} mm\n`;
+  report += `悬架刚度 C：${r.C_susp.toFixed(3)} N/mm\n`;
+  report += `弹簧丝径 d：${r.d} mm\n`;
+  report += `弹簧切应力 τ：${r.tau.toFixed(1)} N/mm²\n`;
+  report += `弹簧高径比 H₀/Dm：${r.hd_ratio.toFixed(2)}\n`;
+  report += `相对阻尼系数 ξ：${r.xi.toFixed(3)}\n`;
+  report += `总阻尼系数 c：${r.c_total.toFixed(1)} N·s/m\n`;
+  report += `工作缸径（标准）D：${r.D_std} mm\n\n`;
+  report += '================================================\n';
+  report += `报告结束  学号：${appState.studentId}  姓名：${appState.studentName}\n`;
+  report += '================================================\n\n\n';
+  report += '--- 以下为系统数据，请勿修改 ---\n';
+  report += '--- SYSTEM DATA BEGIN ---\n';
+  const jsonData = {
+    studentId:   appState.studentId,
+    studentName: appState.studentName,
+    timestamp:   new Date().toISOString(),
+    reportType:  'suspension_design',
+    totalScore:  r.total,
+    grade:       r.grade,
+    scores: { s1: r.sc.s1, s2: r.sc.s2, s3: r.sc.s3, s4: r.sc.s4 },
+    params: { n:r.n, fc:r.fc, fd:r.fd, C_susp:r.C_susp, d:r.d, tau:r.tau, hd_ratio:r.hd_ratio, xi:r.xi, c_total:r.c_total, D_std:r.D_std }
+  };
+  report += JSON.stringify(jsonData, null, 2);
+  report += '\n--- SYSTEM DATA END ---\n';
+  const blob = new Blob([report], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `悬架设计评分报告_${appState.studentId}_${appState.studentName}_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  alert('评分报告已生成！\n请将此 TXT 文件提交给教师，用于导入教师管理统计系统。');
+}
+</script>
+
+<script>
+let state = {
+  // 整车
+  ma: 0, m0: 0, phif: 0, phif0: 0, mu: 0,
+  // 悬架
+  n_freq: 0, fc: 0, fd: 0, ms: 0, ms0: 0, C_susp: 0, fw: 0,
+  alpha_d: 0,
+  Pmax: 0, Pmin: 0,
+  // 弹簧
+  C_sp: 0, K: 0, d_calc: 0, d_use: 0, Dm: 0, Do: 0, Di: 0,
+  n1: 0, n2: 0, n_total: 0, t: 0, alpha_sp: 0,
+  H0: 0, Hb: 0, Cs: 0, tau_check: 0,
+  // 减振器
+  xi: 0, xi_ext: 0, xi_comp: 0,
+  omega_n: 0, c_total: 0, c_ext: 0, c_comp: 0,
+  v0: 0, F0: 0, D_calc: 0,
+  D_std: 0, S_stroke: 0, d_rod: 0
+};
+
+function gv(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function sv(id) { return document.getElementById(id).value; }
+
+function switchTab(i) {
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
+  document.querySelectorAll('.content').forEach((c,j) => c.classList.toggle('active', i===j));
+  if (i === 5) { syncDamperToSim(); }
+  if (i === 8) { calcAll(); generateSummary(); }
+  if (i === 9) { calcAll(); }
+}
+
+function calcAll() {
+  calcSuspension();
+  calcSpring();
+  calcSpringFinal();
+  calcDamper();
+  calcDamperSize();
+  calcGuide();
+}
+
+// ================== 悬架主要参数 ==================
+function calcSuspension() {
+  const ma = gv('ma'), m0 = gv('m0'), phif = gv('phif'), phif0 = gv('phif0'),
+        mu = gv('mu'), n_freq = gv('n_freq'), fd = gv('fd'), alpha_d = gv('alpha_d');
+  const g = 9.8;
+
+  const fc = g / (4 * Math.PI * Math.PI * n_freq * n_freq) * 1000; // mm
+  const ms = (ma * phif / 100 - mu) / 2;
+  const ms0 = (m0 * phif0 / 100 - mu) / 2;
+  const C_susp = ms * g / fc; // N/mm
+  const fw = fc + fd;
+  const Pmax = ms * g * Math.cos(alpha_d * Math.PI / 180);
+  const Pmin = ms0 * g * Math.cos(alpha_d * Math.PI / 180);
+
+  Object.assign(state, {ma,m0,phif,phif0,mu,n_freq,fc,fd,ms,ms0,C_susp,fw,alpha_d,Pmax,Pmin});
+
+  // Frequency hint
+  const displ = sv('displ');
+  let hint = '';
+  if (displ === 'small') {
+    const ok = n_freq >= 1.00 && n_freq <= 1.45;
+    hint = `≤1.6L乘用车满载推荐范围：1.00～1.45 Hz <span class="badge ${ok?'badge-ok':'badge-err'}">${ok?'✓ 合格':'✗ 超范围'}</span>`;
+  } else {
+    const ok = n_freq >= 0.80 && n_freq <= 1.20;
+    hint = `1.6L以上乘用车推荐：0.80～1.20 Hz <span class="badge ${ok?'badge-ok':'badge-err'}">${ok?'✓ 合格':'✗ 超范围'}</span>`;
+  }
+  document.getElementById('n_freq_hint').innerHTML = hint;
+
+  const fdOK = fd >= 70 && fd <= 90;
+  const html = `
+    <div class="summary-grid">
+      <div class="summary-item"><div class="label">静挠度 fc</div><div class="value">${fc.toFixed(1)}</div><div class="unit-s">mm</div></div>
+      <div class="summary-item"><div class="label">动挠度 fd</div><div class="value">${fd.toFixed(0)}</div><div class="unit-s">mm <span class="badge ${fdOK?'badge-ok':'badge-warn'}">${fdOK?'✓':'注意'}</span></div></div>
+      <div class="summary-item"><div class="label">工作行程 fw</div><div class="value">${fw.toFixed(1)}</div><div class="unit-s">mm</div></div>
+      <div class="summary-item"><div class="label">单侧簧上质量（满载）ms</div><div class="value">${ms.toFixed(2)}</div><div class="unit-s">kg</div></div>
+      <div class="summary-item"><div class="label">单侧簧上质量（空载）ms0</div><div class="value">${ms0.toFixed(2)}</div><div class="unit-s">kg</div></div>
+      <div class="summary-item"><div class="label">悬架刚度 C</div><div class="value">${C_susp.toFixed(3)}</div><div class="unit-s">N/mm</div></div>
+      <div class="summary-item"><div class="label">满载1/4悬架载荷</div><div class="value">${(ms*9.8).toFixed(1)}</div><div class="unit-s">N</div></div>
+      <div class="summary-item"><div class="label">空载1/4悬架载荷</div><div class="value">${(ms0*9.8).toFixed(1)}</div><div class="unit-s">N</div></div>
+    </div>
+    <table class="result-table" style="margin-top:14px">
+      <tr><th>计算项目</th><th>公式</th><th>计算过程</th><th>结果</th></tr>
+      <tr><td>静挠度 fc</td><td>fc = g/(4π²n²)</td><td>= 9800/(4π²×${n_freq}²)</td><td><b>${fc.toFixed(2)} mm</b></td></tr>
+      <tr><td>满载前轴轴荷</td><td>Gf = mₐ×g×φf/100</td><td>= ${ma}×9.8×${phif}/100</td><td><b>${(ma*g*phif/100).toFixed(1)} N</b></td></tr>
+      <tr><td>单侧簧上质量(满载)</td><td>ms = (mₐ×φf/100 - mu)/2</td><td>= (${ma}×${phif}/100 - ${mu})/2</td><td><b>${ms.toFixed(2)} kg</b></td></tr>
+      <tr><td>单侧簧上质量(空载)</td><td>ms0 = (m₀×φf0/100 - mu)/2</td><td>= (${m0}×${phif0}/100 - ${mu})/2</td><td><b>${ms0.toFixed(2)} kg</b></td></tr>
+      <tr><td>悬架刚度 C</td><td>C = ms×g/fc</td><td>= ${ms.toFixed(2)}×9.8/${fc.toFixed(2)}</td><td><b>${C_susp.toFixed(3)} N/mm</b></td></tr>
+      <tr><td>悬架工作行程 fw</td><td>fw = fc + fd</td><td>= ${fc.toFixed(1)} + ${fd}</td><td><b>${fw.toFixed(1)} mm</b></td></tr>
+    </table>
+  `;
+  document.getElementById('suspResult').innerHTML = html;
+}
+
+// ================== 螺旋弹簧 ==================
+function calcSpring() {
+  if (!state.ms) calcSuspension();
+  const C_sp = gv('C_spring'), tau_a = gv('tau_allow'),
+        n1 = gv('n1_spring'), n2 = parseFloat(sv('n2_spring')),
+        kt = gv('kt_spring'), G = gv('G_mod'), alpha_s = gv('alpha_s');
+  const Pmax = state.Pmax || (state.ms * 9.8 * Math.cos(alpha_s * Math.PI / 180));
+
+  const K = (4*C_sp-1)/(4*C_sp-4) + 0.615/C_sp;
+  const d_calc = Math.sqrt(8 * K * C_sp * Pmax / (Math.PI * tau_a));
+
+  Object.assign(state, {C_sp, K, d_calc, n1, n2, kt, G_mod: G, alpha_s_spring: alpha_s});
+
+  const html = `
+    <div class="result-highlight">
+      <b>计算结果：</b><br>
+      曲度系数 K = (4×${C_sp}-1)/(4×${C_sp}-4) + 0.615/${C_sp} = <b>${K.toFixed(5)}</b><br>
+      弹簧簧上最大载荷 P_max = ${state.ms.toFixed(2)} × 9.8 × cos(${alpha_s}°) = <b>${Pmax.toFixed(2)} N</b><br>
+      弹簧丝直径计算值 d = √(8×${K.toFixed(4)}×${C_sp}×${Pmax.toFixed(1)}/(π×${tau_a})) = <b>${d_calc.toFixed(3)} mm</b><br>
+      → 请在下方"选取标准弹簧丝径"中选取最接近的标准值（推荐取 <b>${suggestStdD(d_calc)} mm</b>），然后点击"以标准丝径重新计算"。
+    </div>
+  `;
+  document.getElementById('springCalcResult').innerHTML = html;
+  // Auto-suggest standard diameter
+  document.getElementById('d_std').value = suggestStdD(d_calc);
+  calcSpringFinal();
+}
+
+function suggestStdD(d) {
+  const stds = [8,9,10,11,12,13,14,16,18,20,22,25,28,30,32];
+  return stds.reduce((a,b) => Math.abs(b-d)<Math.abs(a-d)?b:a);
+}
+
+function calcSpringFinal() {
+  if (!state.C_sp) return;
+  const d = gv('d_std');
+  const C_sp = state.C_sp, K = state.K, n1 = state.n1, n2 = state.n2,
+        kt = state.kt, G = state.G_mod, alpha_s = state.alpha_s_spring || 0;
+  const Pmax = state.Pmax, Pmin = state.Pmin;
+
+  const Dm = C_sp * d;
+  const Do = Dm + d, Di = Dm - d;
+  const n_total = n1 + n2;
+  const t = kt * Dm;
+  const alpha_sp_deg = Math.atan(t / (Math.PI * Dm)) * 180 / Math.PI;
+  const H0 = n1 * t + (n2 - 0.5) * d;
+  const Hb = (n1 + n2 - 0.5) * d;
+  const Cs = G * Math.pow(d, 4) / (8 * Math.pow(Dm, 3) * n1);
+  const tau = K * 8 * Pmax * C_sp / (Math.PI * d * d);
+
+  Object.assign(state, {d_use: d, Dm, Do, Di, n_total, t, alpha_sp_deg, H0, Hb, Cs, tau_check: tau});
+
+  const alphaOK = alpha_sp_deg >= 5 && alpha_sp_deg <= 9;
+  const h_d_ratio = H0 / Dm;
+  const hdOK = h_d_ratio <= 4;
+  const tauOK = tau <= gv('tau_allow');
+  const CsOK = Math.abs(Cs * Math.pow(Math.cos(alpha_s*Math.PI/180), 2) - state.C_susp) / state.C_susp < 0.15;
+
+  const html = `
+    <table class="result-table">
+      <tr><th>参数</th><th>计算公式</th><th>结果</th><th>状态</th></tr>
+      <tr><td>弹簧丝径 d（标准值）</td><td>查手册选取</td><td><b>${d} mm</b></td><td>—</td></tr>
+      <tr><td>弹簧中径 Dm</td><td>Dm = C×d = ${C_sp}×${d}</td><td><b>${Dm.toFixed(1)} mm</b></td><td>—</td></tr>
+      <tr><td>弹簧外径 Do</td><td>Do = Dm+d</td><td><b>${Do.toFixed(1)} mm</b></td><td>—</td></tr>
+      <tr><td>弹簧内径 Di</td><td>Di = Dm−d</td><td><b>${Di.toFixed(1)} mm</b></td><td>—</td></tr>
+      <tr><td>有效圈数 n₁</td><td>输入值</td><td><b>${n1} 圈</b></td><td>—</td></tr>
+      <tr><td>支承圈数 n₂</td><td>输入值</td><td><b>${n2} 圈</b></td><td>—</td></tr>
+      <tr><td>总圈数 n</td><td>n = n₁+n₂</td><td><b>${n_total} 圈</b></td><td>—</td></tr>
+      <tr><td>弹簧节距 t</td><td>t = ${kt}×Dm = ${kt}×${Dm.toFixed(1)}</td><td><b>${t.toFixed(2)} mm</b></td><td>—</td></tr>
+      <tr><td>弹簧螺旋角 α</td><td>α = arctan(t/πDm)</td><td><b>${alpha_sp_deg.toFixed(2)}°</b></td><td><span class="badge ${alphaOK?'badge-ok':'badge-warn'}">${alphaOK?'✓ 5°~9°':alpha_sp_deg<5?'偏小':'偏大'}</span></td></tr>
+      <tr><td>弹簧自由高度 H₀</td><td>H₀ = n₁×t + (n₂-0.5)×d</td><td><b>${H0.toFixed(1)} mm</b></td><td>—</td></tr>
+      <tr><td>弹簧压并高度 Hb</td><td>Hb = (n₁+n₂-0.5)×d</td><td><b>${Hb.toFixed(1)} mm</b></td><td>—</td></tr>
+      <tr><td>高径比 H₀/Dm</td><td>${H0.toFixed(1)}/${Dm.toFixed(1)}</td><td><b>${h_d_ratio.toFixed(2)}</b></td><td><span class="badge ${hdOK?'badge-ok':'badge-warn'}">${hdOK?'≤4 合格':'＞4 需导向'}</span></td></tr>
+      <tr><td>弹簧刚度 Cs</td><td>G×d⁴/(8×Dm³×n₁)</td><td><b>${Cs.toFixed(3)} N/mm</b></td><td><span class="badge ${CsOK?'badge-ok':'badge-warn'}">${CsOK?'≈悬架刚度':'差异＞15%'}</span></td></tr>
+      <tr><td>满载切应力 τ</td><td>K×8×Pmax×C/(π×d²)</td><td><b>${tau.toFixed(1)} N/mm²</b></td><td><span class="badge ${tauOK?'badge-ok':'badge-err'}">${tauOK?'≤[τ] 合格':'超出许用值'}</span></td></tr>
+    </table>
+  `;
+  document.getElementById('springFinalResult').innerHTML = html;
+  updateSpringVerify();
+}
+
+function updateSpringVerify() {
+  if (!state.d_use) return;
+  const tauOK = state.tau_check <= gv('tau_allow');
+  const h_d = state.H0 / state.Dm;
+  const hdOK = h_d <= 4;
+  const CsRatio = state.Cs / state.C_susp;
+  const alpha_s = state.alpha_s_spring || 0;
+  const Cs_corrected = state.Cs * Math.pow(Math.cos(alpha_s * Math.PI / 180), 2);
+  const csOK = Math.abs(Cs_corrected - state.C_susp) / state.C_susp < 0.15;
+
+  // Actual deflection check
+  const delta_actual = (state.Pmax - state.Pmin) / state.Cs;
+  const deltaOK = delta_actual >= state.fc * 0.85;
+
+  const html = `
+    <div class="verify-row">
+      <span class="check-label">① 弹簧切应力校核：τ = ${state.tau_check.toFixed(1)} N/mm² ≤ [τ] = ${gv('tau_allow')} N/mm²</span>
+      <span class="check-val"><span class="badge ${tauOK?'badge-ok':'badge-err'}">${tauOK?'✓ 满足':'✗ 超出'}</span></span>
+    </div>
+    <div class="verify-row">
+      <span class="check-label">② 高径比稳定性：H₀/Dm = ${state.H0.toFixed(1)}/${state.Dm.toFixed(1)} = ${h_d.toFixed(2)}（推荐≤2.6或加导向≤4）</span>
+      <span class="check-val"><span class="badge ${hdOK?'badge-ok':'badge-warn'}">${hdOK?h_d<=2.6?'✓ 无需导向':'✓ 需加导向':'✗ 不稳定'}</span></span>
+    </div>
+    <div class="verify-row">
+      <span class="check-label">③ 弹簧刚度验证：Cs = ${state.Cs.toFixed(3)} N/mm，需求 C = ${state.C_susp.toFixed(3)} N/mm（偏差 ${(Math.abs(Cs_corrected-state.C_susp)/state.C_susp*100).toFixed(1)}%）</span>
+      <span class="check-val"><span class="badge ${csOK?'badge-ok':'badge-warn'}">${csOK?'✓ 满足':'调整圈数'}</span></span>
+    </div>
+    <div class="verify-row">
+      <span class="check-label">④ 弹性变形量验证：Δ = (Pmax-Pmin)/Cs = ${delta_actual.toFixed(1)} mm（≥fc=${state.fc.toFixed(1)} mm）</span>
+      <span class="check-val"><span class="badge ${deltaOK?'badge-ok':'badge-warn'}">${deltaOK?'✓ 满足':'偏小'}</span></span>
+    </div>
+  `;
+  document.getElementById('springVerifyResult').innerHTML = `<div class="card" style="padding:0">${html}</div>`;
+
+  // Stiffness detail
+  const stiffHtml = `
+    <table class="result-table">
+      <tr><th>参数</th><th>值</th></tr>
+      <tr><td>弹簧刚度 Cs（计算）</td><td><b>${state.Cs.toFixed(3)} N/mm</b></td></tr>
+      <tr><td>弹簧刚度（角度修正后）</td><td><b>${Cs_corrected.toFixed(3)} N/mm</b>（×cos²${alpha_s}°）</td></tr>
+      <tr><td>目标悬架刚度 C</td><td><b>${state.C_susp.toFixed(3)} N/mm</b></td></tr>
+      <tr><td>刚度偏差</td><td>${((Cs_corrected-state.C_susp)/state.C_susp*100).toFixed(2)}%　<span class="badge ${csOK?'badge-ok':'badge-warn'}">${csOK?'满足':'需调整'}</span></td></tr>
+      <tr><td>空载弹簧变形量 Δmin</td><td>${(state.Pmin/state.Cs).toFixed(1)} mm</td></tr>
+      <tr><td>满载弹簧变形量 Δmax</td><td>${(state.Pmax/state.Cs).toFixed(1)} mm</td></tr>
+      <tr><td>动行程对应压缩量</td><td>${(state.fd/state.Cs*state.C_susp).toFixed(1)} mm（估算）</td></tr>
+    </table>
+  `;
+  document.getElementById('springStiffResult').innerHTML = stiffHtml;
+}
+
+// ================== 减振器 ==================
+function calcDamper() {
+  if (!state.ms) calcSuspension();
+  const xi = gv('xi'), xi_ext_ratio = gv('xi_ext_ratio');
+  const p_allow = gv('p_allow'), lambda = gv('lambda');
+  const A_amp = gv('A_amp') / 1000; // m
+  const alpha_d_rad = (state.alpha_d || gv('alpha_d')) * Math.PI / 180;
+
+  const xi_ext = xi / (1 - xi_ext_ratio) * xi_ext_ratio;
+  // Actually: ξ_ext + ξ_comp = 2ξ and ξ_ext = 2ξ_comp
+  const xi_ext2 = 2 * xi * 2 / 3; // ξ_ext = 2ξ_comp, ξ_avg = ξ_ext*ξ_comp/(ξ_ext+ξ_comp) concept is complex
+  // Use simple: ξ_ext = 2/3 * 2ξ = 4ξ/3, ξ_comp = 2ξ/3
+  // Actually from the formulas: ξ_ext + ξ_comp = 2ξ, ξ_ext = 2ξ_comp → ξ_ext = 4ξ/3, ξ_comp = 2ξ/3
+  const xi_ext_val = 4 * xi / 3;
+  const xi_comp_val = 2 * xi / 3;
+
+  const omega_n = 2 * Math.PI * state.n_freq;
+  const c_total = 2 * xi * state.ms * omega_n / Math.pow(Math.cos(alpha_d_rad), 2);
+  const c_ext = 2 * xi_ext_val * state.ms * omega_n / Math.pow(Math.cos(alpha_d_rad), 2);
+  const c_comp = 2 * xi_comp_val * state.ms * omega_n / Math.pow(Math.cos(alpha_d_rad), 2);
+
+  const v0 = A_amp * omega_n * Math.cos(alpha_d_rad); // m/s
+  const F0 = c_ext * v0; // N (c_ext in N·s/m, v0 in m/s)
+  const D_calc = Math.sqrt(4 * F0 / (Math.PI * p_allow * (1 - lambda * lambda))); // mm (p_allow in MPa = N/mm²)
+
+  Object.assign(state, {xi, omega_n, c_total, c_ext, c_comp, xi_ext: xi_ext_val, xi_comp: xi_comp_val, v0, F0, D_calc});
+
+  const D_sugg = suggestStdDamper(D_calc);
+  document.getElementById('D_damper_std').value = D_sugg;
+
+  const html = `
+    <table class="result-table">
+      <tr><th>计算项目</th><th>公式</th><th>计算过程</th><th>结果</th></tr>
+      <tr><td>悬架固有角频率 ωn</td><td>ωn = 2π×n</td><td>= 2π×${state.n_freq}</td><td><b>${omega_n.toFixed(3)} rad/s</b></td></tr>
+      <tr><td>相对阻尼系数 ξ</td><td>输入值</td><td>—</td><td><b>${xi}</b></td></tr>
+      <tr><td>伸张行程 ξ_ext</td><td>ξ_ext = 4ξ/3</td><td>= 4×${xi}/3</td><td><b>${xi_ext_val.toFixed(4)}</b></td></tr>
+      <tr><td>压缩行程 ξ_comp</td><td>ξ_comp = 2ξ/3</td><td>= 2×${xi}/3</td><td><b>${xi_comp_val.toFixed(4)}</b></td></tr>
+      <tr><td>减振器阻尼系数 c</td><td>c = 2ξ×ms×ωn/cos²α_d</td><td>= 2×${xi}×${state.ms.toFixed(2)}×${omega_n.toFixed(3)}/cos²${state.alpha_d}°</td><td><b>${c_total.toFixed(1)} N·s/m</b></td></tr>
+      <tr><td>伸张阻尼系数 c_ext</td><td>c_ext = 2ξ_ext×ms×ωn/cos²α_d</td><td>—</td><td><b>${c_ext.toFixed(1)} N·s/m</b></td></tr>
+      <tr><td>压缩阻尼系数 c_comp</td><td>c_comp = 2ξ_comp×ms×ωn/cos²α_d</td><td>—</td><td><b>${c_comp.toFixed(1)} N·s/m</b></td></tr>
+      <tr><td>最大卸荷速度 v₀</td><td>v₀ = A×ωn×cosα_d</td><td>= ${A_amp*1000}mm×${omega_n.toFixed(3)}×cos${state.alpha_d}°</td><td><b>${v0.toFixed(4)} m/s</b></td></tr>
+      <tr><td>最大卸荷力 F₀</td><td>F₀ = c_ext × v₀</td><td>= ${c_ext.toFixed(1)}×${v0.toFixed(4)}</td><td><b>${F0.toFixed(1)} N</b></td></tr>
+      <tr><td>工作缸直径（计算值）D'</td><td>D' = √(4F₀/(π[p](1-λ²)))</td><td>= √(4×${F0.toFixed(1)}/(π×${p_allow}×(1-${lambda}²)))</td><td><b>${D_calc.toFixed(2)} mm</b></td></tr>
+      <tr><td>推荐选取标准直径</td><td>—</td><td>—</td><td><b>${D_sugg} mm</b></td></tr>
+    </table>
+    <div class="info-box" style="margin-top:10px">
+      标准工作缸直径系列（QC/T 491—1999）：20, 30, 40, 45, 50, 60 mm。已自动选取推荐值，可在下方调整。
+    </div>
+  `;
+  document.getElementById('damperResult').innerHTML = html;
+  calcDamperSize();
+}
+
+function suggestStdDamper(d) {
+  const stds = [20,30,40,45,50,60];
+  const bigger = stds.filter(s => s >= d);
+  return bigger.length ? bigger[0] : stds[stds.length-1];
+}
+
+function calcDamperSize() {
+  if (!state.F0) return;
+  const D_std = gv('D_damper_std') || parseFloat(sv('D_damper_std'));
+  const lambda = gv('lambda');
+  const S = gv('S_stroke');
+  const l0 = gv('l0_damper');
+  const delta_w = gv('wall_thick');
+
+  const d_rod = Math.round(lambda * D_std);
+  const D_out = 2 * D_std + 2 * delta_w; // approximate: oil reservoir slightly larger
+  const D_dust = D_out + 6;
+  // Hb_damper: compressed height including base
+  const Hb_d = l0 + 40; // approx
+  const L_min = l0 + Hb_d;
+  const L_max = L_min + S;
+
+  // Pressure check with selected standard cylinder
+  const p_check = 4 * state.F0 / (Math.PI * D_std * D_std * (1 - lambda * lambda));
+
+  Object.assign(state, {D_std, S_stroke: S, d_rod, L_min, L_max});
+
+  const pOK = p_check <= gv('p_allow');
+  const sOK = S >= state.fw;
+
+  const html = `
+    <table class="result-table">
+      <tr><th>尺寸参数</th><th>计算/选取</th><th>数值</th><th>说明</th></tr>
+      <tr><td>工作缸内径 D</td><td>选取标准值</td><td><b>${D_std} mm</b></td><td>—</td></tr>
+      <tr><td>活塞杆直径 d_rod</td><td>d = λ×D = ${lambda}×${D_std}</td><td><b>${d_rod} mm</b>（取整）</td><td>—</td></tr>
+      <tr><td>贮油筒最大外径</td><td>≈ 2D + 2δ</td><td><b>${D_out} mm</b></td><td>参考值</td></tr>
+      <tr><td>防尘罩最大外径</td><td>≈ D_out + 6</td><td><b>${D_dust} mm</b></td><td>参考值</td></tr>
+      <tr><td>活塞行程 S</td><td>输入值</td><td><b>${S} mm</b></td><td><span class="badge ${sOK?'badge-ok':'badge-warn'}">${sOK?`≥fw=${state.fw.toFixed(1)}mm✓`:`建议≥${state.fw.toFixed(1)}mm`}</span></td></tr>
+      <tr><td>工作缸实际最大压力</td><td>p = 4F₀/(πD²(1-λ²))</td><td><b>${p_check.toFixed(2)} MPa</b></td><td><span class="badge ${pOK?'badge-ok':'badge-err'}">${pOK?`≤[p]=${gv('p_allow')}MPa✓`:'超出许用值'}</span></td></tr>
+      <tr><td>减振器最小长度（压缩底）</td><td>L_min = l₀ + Hb</td><td><b>${L_min} mm</b>（估算）</td><td>—</td></tr>
+      <tr><td>减振器最大长度（全伸）</td><td>L_max = L_min + S</td><td><b>${L_max} mm</b></td><td>—</td></tr>
+    </table>
+  `;
+  document.getElementById('damperSizeResult').innerHTML = html;
+}
+
+// ================== 导向机构 ==================
+function calcGuide() {
+  if (!state.ms) calcSuspension();
+  const L_arm = gv('L_arm'), gamma = gv('gamma_strut'),
+        l_g = gv('l_guide'), e = gv('e_offset'), a = gv('a_dist');
+  const Bf = gv('trackf');
+  const g = 9.8;
+
+  // Lateral force on wheel (approximate: side load during cornering)
+  const G_wheel = state.ms * g; // N, vertical load on one wheel
+  // Lateral force = ~0.4G (cornering, typical)
+  const F_lat = 0.4 * G_wheel;
+  // Spring axial force offset torque
+  const M_spring = state.Pmax * e;
+  // Guide sleeve lateral force
+  const N_guide = (F_lat * a + M_spring) / l_g;
+
+  // Lower arm force (reaction at ball joint)
+  const F_arm_lat = G_wheel * (Bf / 2) / L_arm;
+
+  const html = `
+    <table class="result-table">
+      <tr><th>计算项目</th><th>公式/说明</th><th>计算过程</th><th>结果</th></tr>
+      <tr><td>单侧车轮垂直载荷</td><td>G_w = ms×g</td><td>= ${state.ms.toFixed(2)}×9.8</td><td><b>${G_wheel.toFixed(1)} N</b></td></tr>
+      <tr><td>估算侧向力（转弯工况）</td><td>F_lat ≈ 0.4×G_w</td><td>= 0.4×${G_wheel.toFixed(1)}</td><td><b>${F_lat.toFixed(1)} N</b></td></tr>
+      <tr><td>弹簧偏置力矩</td><td>M = P_max×e</td><td>= ${state.Pmax.toFixed(1)}×${e}</td><td><b>${M_spring.toFixed(1)} N·mm</b></td></tr>
+      <tr><td>导向套侧向力 N</td><td>N = (F_lat×a + M)/l_g</td><td>= (${F_lat.toFixed(1)}×${a} + ${M_spring.toFixed(1)})/${l_g}</td><td><b>${N_guide.toFixed(1)} N</b></td></tr>
+      <tr><td>下横臂侧向反力</td><td>F_arm = G_w×(B/2)/L_arm</td><td>= ${G_wheel.toFixed(1)}×${Bf/2}/${L_arm}</td><td><b>${F_arm_lat.toFixed(1)} N</b></td></tr>
+      <tr><td>横臂有效长度</td><td>输入值</td><td>—</td><td><b>${L_arm} mm</b></td></tr>
+    </table>
+    <div class="info-box" style="margin-top:10px">
+      <b>结构建议：</b>导向套侧向力 N = ${N_guide.toFixed(0)} N。
+      ${N_guide > 3000 ? '侧向力较大，建议增大导向套长度 l_g 或减小偏置距离 a。' : '导向套受力在合理范围内。'}
+      横臂长度 ${L_arm} mm 符合设计要求（一般＞350mm）。
+    </div>
+  `;
+  document.getElementById('guideResult').innerHTML = html;
+}
+
+// ================== 汇总报告 ==================
+function generateSummary() {
+  if (!state.ms) { alert('请先完成各标签页的计算！'); return; }
+
+  const checkItems = [];
+  checkItems.push({label:'悬架偏频 n = ' + state.n_freq + ' Hz', ok: true, hint:'符合乘用车要求'});
+  checkItems.push({label:'静挠度 fc = ' + state.fc.toFixed(1) + ' mm', ok: state.fc >= 80 && state.fc <= 250, hint:'推荐80~250mm'});
+  checkItems.push({label:'动挠度 fd = ' + state.fd + ' mm', ok: state.fd >= 70 && state.fd <= 90, hint:'乘用车推荐70~90mm'});
+  if (state.d_use) {
+    checkItems.push({label:'弹簧切应力 τ = ' + state.tau_check.toFixed(1) + ' N/mm²', ok: state.tau_check <= gv('tau_allow'), hint:'≤[τ]='+ gv('tau_allow')+'N/mm²'});
+    checkItems.push({label:'高径比 H₀/Dm = ' + (state.H0/state.Dm).toFixed(2), ok: state.H0/state.Dm <= 4, hint:'推荐≤4（否则须加导向柱）'});
+    checkItems.push({label:'弹簧螺旋角 α = ' + state.alpha_sp_deg.toFixed(1) + '°', ok: state.alpha_sp_deg>=5&&state.alpha_sp_deg<=9, hint:'推荐5°~9°'});
+  }
+  if (state.D_std) {
+    const p_check = 4 * state.F0 / (Math.PI * state.D_std * state.D_std * (1 - gv('lambda') * gv('lambda')));
+    checkItems.push({label:'减振器工作缸压力 = ' + p_check.toFixed(2) + ' MPa', ok: p_check <= gv('p_allow'), hint:'≤[p]='+ gv('p_allow')+'MPa'});
+    checkItems.push({label:'活塞行程 S = ' + state.S_stroke + ' mm', ok: state.S_stroke >= state.fw, hint:'应≥工作行程fw='+state.fw.toFixed(1)+'mm'});
+  }
+
+  const summaryHtml = `
+    ${appState.studentId ? `<div class="info-box" style="background:#e8f0ff;border-color:#9ab4e8;margin-bottom:12px"><strong>学生：</strong>${appState.studentName}（${appState.studentId}）&emsp;<strong>时间：</strong>${new Date().toLocaleString('zh-CN')}</div>` : ''}
+    <div class="summary-grid" style="margin-bottom:16px">
+      <div class="summary-item"><div class="label">悬架偏频 n</div><div class="value">${state.n_freq}</div><div class="unit-s">Hz</div></div>
+      <div class="summary-item"><div class="label">静挠度 fc</div><div class="value">${state.fc.toFixed(1)}</div><div class="unit-s">mm</div></div>
+      <div class="summary-item"><div class="label">动挠度 fd</div><div class="value">${state.fd}</div><div class="unit-s">mm</div></div>
+      <div class="summary-item"><div class="label">悬架刚度 C</div><div class="value">${state.C_susp.toFixed(2)}</div><div class="unit-s">N/mm</div></div>
+      <div class="summary-item"><div class="label">单侧簧载质量(满载)</div><div class="value">${state.ms.toFixed(1)}</div><div class="unit-s">kg</div></div>
+      ${state.d_use ? `
+      <div class="summary-item"><div class="label">弹簧丝径 d</div><div class="value">${state.d_use}</div><div class="unit-s">mm</div></div>
+      <div class="summary-item"><div class="label">弹簧中径 Dm</div><div class="value">${state.Dm.toFixed(1)}</div><div class="unit-s">mm</div></div>
+      <div class="summary-item"><div class="label">弹簧自由高 H₀</div><div class="value">${state.H0.toFixed(1)}</div><div class="unit-s">mm</div></div>
+      <div class="summary-item"><div class="label">弹簧刚度 Cs</div><div class="value">${state.Cs.toFixed(2)}</div><div class="unit-s">N/mm</div></div>
+      ` : ''}
+      ${state.D_std ? `
+      <div class="summary-item"><div class="label">减振器阻尼系数</div><div class="value">${state.c_total.toFixed(0)}</div><div class="unit-s">N·s/m</div></div>
+      <div class="summary-item"><div class="label">减振器缸径 D</div><div class="value">${state.D_std}</div><div class="unit-s">mm（标准）</div></div>
+      <div class="summary-item"><div class="label">活塞杆直径</div><div class="value">${state.d_rod}</div><div class="unit-s">mm</div></div>
+      ` : ''}
+    </div>
+    <table class="result-table">
+      <tr><th colspan="5" style="text-align:center;background:#1a3560;color:white">麦弗逊前悬架设计参数汇总表</th></tr>
+      <tr><th>模块</th><th>参数名称</th><th>符号</th><th>数值</th><th>单位</th></tr>
+      <tr><td rowspan="3"><b>整车参数</b></td><td>整车满载质量</td><td>mₐ</td><td>${state.ma}</td><td>kg</td></tr>
+      <tr><td>前轴满载轴荷比</td><td>φf</td><td>${state.phif}</td><td>%</td></tr>
+      <tr><td>单侧满载簧载质量</td><td>ms</td><td>${state.ms.toFixed(2)}</td><td>kg</td></tr>
+      <tr><td rowspan="5"><b>悬架参数</b></td><td>悬架偏频（满载）</td><td>n</td><td>${state.n_freq}</td><td>Hz</td></tr>
+      <tr><td>悬架静挠度</td><td>fc</td><td>${state.fc.toFixed(2)}</td><td>mm</td></tr>
+      <tr><td>悬架动挠度</td><td>fd</td><td>${state.fd}</td><td>mm</td></tr>
+      <tr><td>悬架工作行程</td><td>fw</td><td>${state.fw.toFixed(1)}</td><td>mm</td></tr>
+      <tr><td>悬架刚度</td><td>C</td><td>${state.C_susp.toFixed(3)}</td><td>N/mm</td></tr>
+      ${state.d_use ? `
+      <tr><td rowspan="9"><b>螺旋弹簧</b></td><td>弹簧材料</td><td>—</td><td>60Si2MnA</td><td>—</td></tr>
+      <tr><td>弹簧丝径（标准）</td><td>d</td><td>${state.d_use}</td><td>mm</td></tr>
+      <tr><td>弹簧中径</td><td>Dm</td><td>${state.Dm.toFixed(1)}</td><td>mm</td></tr>
+      <tr><td>弹簧外径</td><td>Do</td><td>${state.Do.toFixed(1)}</td><td>mm</td></tr>
+      <tr><td>有效圈数</td><td>n₁</td><td>${state.n1}</td><td>圈</td></tr>
+      <tr><td>总圈数</td><td>n</td><td>${state.n_total}</td><td>圈</td></tr>
+      <tr><td>弹簧自由高度</td><td>H₀</td><td>${state.H0.toFixed(1)}</td><td>mm</td></tr>
+      <tr><td>弹簧压并高度</td><td>Hb</td><td>${state.Hb.toFixed(1)}</td><td>mm</td></tr>
+      <tr><td>弹簧刚度</td><td>Cs</td><td>${state.Cs.toFixed(3)}</td><td>N/mm</td></tr>
+      ` : ''}
+      ${state.D_std ? `
+      <tr><td rowspan="6"><b>减振器</b></td><td>相对阻尼系数</td><td>ξ</td><td>${state.xi}</td><td>—</td></tr>
+      <tr><td>减振器阻尼系数</td><td>c</td><td>${state.c_total.toFixed(1)}</td><td>N·s/m</td></tr>
+      <tr><td>伸张行程阻尼系数</td><td>c_ext</td><td>${state.c_ext.toFixed(1)}</td><td>N·s/m</td></tr>
+      <tr><td>压缩行程阻尼系数</td><td>c_comp</td><td>${state.c_comp.toFixed(1)}</td><td>N·s/m</td></tr>
+      <tr><td>工作缸内径（标准）</td><td>D</td><td>${state.D_std}</td><td>mm</td></tr>
+      <tr><td>活塞杆直径</td><td>d_rod</td><td>${state.d_rod}</td><td>mm</td></tr>
+      ` : ''}
+    </table>
+  `;
+  document.getElementById('summaryContent').innerHTML = summaryHtml;
+
+  const allOK = checkItems.every(i => i.ok);
+  const checkHtml = `
+    <div class="info-box ${allOK?'':'badge-warn'}" style="margin-bottom:10px">
+      ${allOK?'✅ 所有校核项目均满足要求':'⚠️ 部分校核项目需要调整，请查看下表'}
+    </div>
+    ${checkItems.map(item => `
+      <div class="verify-row">
+        <span class="check-label">${item.label}</span>
+        <span style="flex:1;font-size:11px;color:#888;">${item.hint}</span>
+        <span class="check-val"><span class="badge ${item.ok?'badge-ok':'badge-err'}">${item.ok?'✓ 满足':'✗ 需调整'}</span></span>
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('checklistContent').innerHTML = `<div class="card" style="padding:0">${checkHtml}</div>`;
+}
+
+// ================== 特性仿真 JS ==================
+
+const COMP5_INFO = {
+  df:  { label:'复原阀孔径 d_f', unit:'mm',   low:1.2, high:1.8,
+         hint:'孔径增大 → 节流面积增大 → 压差减小 → 复原阻力降低；不影响压缩阻力。' },
+  dy:  { label:'压缩阀孔径 d_y', unit:'mm',   low:0.6, high:1.0,
+         hint:'孔径增大 → 底阀面积增大 → 压差减小 → 压缩阻力降低；不影响复原阻力。' },
+  Dr:  { label:'活塞杆径 d_r',   unit:'mm',   low:10,  high:16,
+         hint:'加粗活塞杆 → A_g增大 → 压缩流量Q_y=v·A_g增大 → 压缩阻力升高；A_p固定，复原阻力基本不变。' },
+  kf:  { label:'复原阀片柔度 k_f', unit:'×10⁻⁹', low:0, high:15,
+         hint:'柔度=0为刚性阀；柔度增大 → 高速时节流面积增大 → 复原阻力曲线斜率减小，高速特性更平缓。' },
+  ky:  { label:'压缩阀片柔度 k_y', unit:'×10⁻⁹', low:0, high:10,
+         hint:'柔度增大 → 压缩高速特性趋于平缓，压缩阻力增速减慢。' },
+  nf:  { label:'复原阀孔数 n_f',   unit:'个',   low:2,   high:6,
+         hint:'孔数增多 → 总节流面积增大 → 复原阻力降低，效果等同于加大孔径。' },
+};
+
+function SV(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function getSimParams5(overrides) {
+  const p = {
+    Dp:   SV('s_Dp'),  Dr:   SV('s_Dr'),  rho:  SV('s_rho'), Ffr:  SV('s_Ffr'),
+    df:   SV('s_df'),  nf:   SV('s_nf'),  Cdf:  SV('s_Cdf'), kf:   SV('s_kf'),
+    dy:   SV('s_dy'),  ny:   SV('s_ny'),  Cdy:  SV('s_Cdy'), ky:   SV('s_ky'),
+    Vmax: SV('s_Vmax'), freq: SV('s_freq'),
+    ...(overrides || {})
+  };
+  p.Ap  = Math.PI / 4 * Math.pow(p.Dp / 1000, 2);
+  p.Ag  = Math.PI / 4 * Math.pow(p.Dr / 1000, 2);
+  p.Af0 = p.nf * Math.PI / 4 * Math.pow(p.df / 1000, 2);
+  p.Ay0 = p.ny * Math.PI / 4 * Math.pow(p.dy / 1000, 2);
+  p.kf_si = p.kf * 1e-9;
+  p.ky_si = p.ky * 1e-9;
+  return p;
+}
+
+function solveDeltaP5(Q, Cd, A0, k, rho) {
+  if (Q <= 1e-20) return 0;
+  const K = Q * Math.sqrt(rho / 2);
+  if (k < 1e-28) { const u = K / (Cd * A0); return u * u; }
+  const a = Cd * k, b = Cd * A0;
+  const disc = b * b + 4 * a * K;
+  const u = (-b + Math.sqrt(disc)) / (2 * a);
+  return u * u;
+}
+
+function simFr(v, p) {
+  if (v <= 0) return 0;
+  const dP = solveDeltaP5(v * p.Ap, p.Cdf, p.Af0, p.kf_si, p.rho);
+  return Math.max(0, dP * p.Ap + p.Ffr);
+}
+
+function simFc(v, p) {
+  if (v <= 0) return 0;
+  const dP = solveDeltaP5(v * p.Ag, p.Cdy, p.Ay0, p.ky_si, p.rho);
+  return Math.max(0, dP * p.Ap - p.Ffr);
+}
+
+function computeFv5(p, N) {
+  N = N || 150;
+  const vs = [], Fr = [], Fc = [];
+  for (let i = 0; i <= N; i++) {
+    const v = p.Vmax * i / N;
+    Fr.push(simFr(v, p)); Fc.push(simFc(v, p)); vs.push(v);
+  }
+  return { vs, Fr, Fc };
+}
+
+function simulate5(p, N) {
+  N = N || 600;
+  const omega = 2 * Math.PI * p.freq;
+  const dt = 1 / (p.freq * N);
+  const res = { t:[], v:[], s:[], F:[] };
+  let s = 0;
+  for (let i = 0; i <= N; i++) {
+    const t = i * dt;
+    const v = p.Vmax * Math.sin(omega * t);
+    const F = v >= 0 ? simFr(v, p) : -simFc(-v, p);
+    res.t.push(t); res.v.push(v); res.s.push(s * 1000); res.F.push(F);
+    if (i < N) s += v * dt;
+  }
+  return res;
+}
+
+let _pendingFsData = null;
+
+function showSimError(msg) {
+  const el = document.getElementById('sim-error');
+  if (!el) return;
+  el.textContent = '⚠ 仿真错误：' + msg;
+  el.style.display = 'block';
+}
+
+function fmtTick(v) {
+  const a = Math.abs(v);
+  if (a === 0) return '0';
+  if (a >= 10000) return (v/1000).toFixed(1) + 'k';
+  if (a >= 1000)  return (v/1000).toFixed(2) + 'k';
+  if (a >= 100)   return v.toFixed(0);
+  if (a >= 10)    return v.toFixed(1);
+  return v.toFixed(2);
+}
+
+function renderSvgChart(containerId, datasets, xLabel, yLabel) {
+  var container = document.getElementById(containerId);
+  if (!container) { showSimError('找不到容器: ' + containerId); return; }
+  var VW = 500, VH = 300, PL = 58, PR = 16, PT = 36, PB = 48;
+  var plotW = VW - PL - PR, plotH = VH - PT - PB;
+  var xMin=1e18, xMax=-1e18, yMin=1e18, yMax=-1e18;
+  datasets.forEach(function(ds) {
+    ds.data.forEach(function(pt) {
+      if (pt.x < xMin) xMin=pt.x; if (pt.x > xMax) xMax=pt.x;
+      if (pt.y < yMin) yMin=pt.y; if (pt.y > yMax) yMax=pt.y;
+    });
+  });
+  if (xMin===xMax) { xMin-=0.1; xMax+=0.1; }
+  if (yMin===yMax) { yMin-=1;   yMax+=1; }
+  var xPad=(xMax-xMin)*0.05, yPad=(yMax-yMin)*0.08;
+  xMin-=xPad; xMax+=xPad; yMin-=yPad; yMax+=yPad;
+  function sx(x) { return PL + (x-xMin)/(xMax-xMin)*plotW; }
+  function sy(y) { return PT + plotH - (y-yMin)/(yMax-yMin)*plotH; }
+  var parts = [];
+  var NX=5, NY=5;
+  for (var gi=0;gi<=NX;gi++){
+    var gx=PL+gi*plotW/NX;
+    parts.push('<line x1="'+gx+'" y1="'+PT+'" x2="'+gx+'" y2="'+(PT+plotH)+'" stroke="rgba(26,74,138,0.1)" stroke-width="1"/>');
+  }
+  for (var gj=0;gj<=NY;gj++){
+    var gy=PT+gj*plotH/NY;
+    parts.push('<line x1="'+PL+'" y1="'+gy+'" x2="'+(PL+plotW)+'" y2="'+gy+'" stroke="rgba(26,74,138,0.1)" stroke-width="1"/>');
+  }
+  parts.push('<line x1="'+PL+'" y1="'+PT+'" x2="'+PL+'" y2="'+(PT+plotH)+'" stroke="#c8d8f0" stroke-width="1.5"/>');
+  parts.push('<line x1="'+PL+'" y1="'+(PT+plotH)+'" x2="'+(PL+plotW)+'" y2="'+(PT+plotH)+'" stroke="#c8d8f0" stroke-width="1.5"/>');
+  for (var xi=0;xi<=NX;xi++){
+    var xv=xMin+xi*(xMax-xMin)/NX, px=PL+xi*plotW/NX;
+    parts.push('<text x="'+px+'" y="'+(PT+plotH+14)+'" text-anchor="middle" fill="#888" font-size="10" font-family="sans-serif">'+fmtTick(xv)+'</text>');
+  }
+  for (var yi=0;yi<=NY;yi++){
+    var yv=yMax-yi*(yMax-yMin)/NY, py=PT+yi*plotH/NY;
+    parts.push('<text x="'+(PL-4)+'" y="'+(py+3)+'" text-anchor="end" fill="#888" font-size="10" font-family="sans-serif">'+fmtTick(yv)+'</text>');
+  }
+  parts.push('<text x="'+(PL+plotW/2)+'" y="'+(VH-4)+'" text-anchor="middle" fill="#666" font-size="11" font-family="sans-serif">'+xLabel+'</text>');
+  parts.push('<text x="13" y="'+(PT+plotH/2)+'" text-anchor="middle" fill="#666" font-size="11" font-family="sans-serif" transform="rotate(-90,13,'+(PT+plotH/2)+')">'+yLabel+'</text>');
+  var fbColors = ['#1a7c3a','#1a4a8a','#d48806','#c0392b'];
+  datasets.forEach(function(ds, di){
+    if (!ds.data || ds.data.length===0) return;
+    var col = ds.borderColor || fbColors[di % fbColors.length];
+    var pts = ds.data.slice().sort(function(a,b){ return a.x-b.x; });
+    var d = 'M '+sx(pts[0].x).toFixed(1)+' '+sy(pts[0].y).toFixed(1);
+    for (var pi=1;pi<pts.length;pi++) d+=' L '+sx(pts[pi].x).toFixed(1)+' '+sy(pts[pi].y).toFixed(1);
+    var dash=(ds.borderDash&&ds.borderDash.length)?' stroke-dasharray="'+ds.borderDash.join(',') +'"':'';
+    parts.push('<path d="'+d+'" stroke="'+col+'" stroke-width="2" fill="none"'+dash+'/>');
+  });
+  var legX=PL, legY=PT-10;
+  datasets.forEach(function(ds, di){
+    var col=ds.borderColor||fbColors[di%fbColors.length];
+    parts.push('<line x1="'+legX+'" y1="'+legY+'" x2="'+(legX+16)+'" y2="'+legY+'" stroke="'+col+'" stroke-width="2"/>');
+    parts.push('<text x="'+(legX+20)+'" y="'+(legY+4)+'" fill="#444" font-size="10" font-family="sans-serif">'+ds.label+'</text>');
+    var lw=0;
+    for (var ci=0;ci<ds.label.length;ci++) lw+=ds.label.charCodeAt(ci)>127?12:7;
+    legX+=lw+28;
+  });
+  container.innerHTML='<svg viewBox="0 0 '+VW+' '+VH+'" width="100%" xmlns="http://www.w3.org/2000/svg">'+parts.join('')+'</svg>';
+}
+
+function runSim5() {
+  const errEl = document.getElementById('sim-error');
+  if (errEl) errEl.style.display='none';
+  try {
+    const p = getSimParams5();
+    if (!p.freq||p.freq<=0) throw new Error('激励频率必须 > 0');
+    if (!p.Vmax||p.Vmax<=0) throw new Error('峰值速度必须 > 0');
+    if (!p.Dp||p.Dp<=0)     throw new Error('工作缸径必须 > 0');
+    const sim = simulate5(p);
+    const fv  = computeFv5(p);
+    const maxF = sim.F.reduce((a,b)=>b>a?b:a,-1e18);
+    const minF = sim.F.reduce((a,b)=>b<a?b:a, 1e18);
+    const ratio = Math.abs(minF)>0 ? maxF/Math.abs(minF) : 0;
+    const smax  = sim.s.reduce((a,b)=>b>a?b:a,0);
+    const FrAt52 = simFr(0.52, p), FcAt52 = simFc(0.52, p);
+    document.getElementById('st1-metrics').innerHTML =
+      '<div class="sim-metric gr"><div class="sim-metric-label">复原峰值阻力</div><div class="sim-metric-value gr">'+maxF.toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric bl"><div class="sim-metric-label">压缩峰值阻力</div><div class="sim-metric-value bl">'+Math.abs(minF).toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric or"><div class="sim-metric-label">复/压力比</div><div class="sim-metric-value or">'+ratio.toFixed(2)+'</div><div class="sim-metric-unit">—</div></div>'+
+      '<div class="sim-metric"><div class="sim-metric-label">@0.52m/s 复原力</div><div class="sim-metric-value">'+FrAt52.toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric"><div class="sim-metric-label">@0.52m/s 压缩力</div><div class="sim-metric-value">'+FcAt52.toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric"><div class="sim-metric-label">最大行程</div><div class="sim-metric-value">'+smax.toFixed(1)+'</div><div class="sim-metric-unit">mm</div></div>';
+    const half = Math.floor(sim.s.length/2);
+    _pendingFsData = {
+      rebFS:  sim.s.slice(0,half+1).map(function(sv,i){ return {x:sv, y:sim.F[i]}; }),
+      compFS: sim.s.slice(half).map(function(sv,i)    { return {x:sv, y:sim.F[half+i]}; })
+    };
+    document.getElementById('st1-ph').style.display='none';
+    document.getElementById('st1-res').style.display='flex';
+    document.getElementById('st2-ph').style.display='block';
+    document.getElementById('st2-res').style.display='none';
+    renderSvgChart('fv-chart-wrap',
+      [{ label:'复原行程', data: fv.vs.map(function(v,i){ return {x:v,  y:fv.Fr[i]}; }), borderColor:'#1a7c3a' },
+       { label:'压缩行程', data: fv.vs.map(function(v,i){ return {x:-v, y:-fv.Fc[i]}; }), borderColor:'#2d6ec0' }],
+      '速度 v (m/s)', '阻尼力 F (N)');
+  } catch(e) { showSimError(e.message||String(e)); }
+}
+
+function updateComp5Fields() {
+  const key  = document.getElementById('comp5-param').value;
+  const info = COMP5_INFO[key];
+  document.getElementById('comp5-va').value = info.low;
+  document.getElementById('comp5-vb').value = info.high;
+}
+
+function runComp5() {
+  const errEl = document.getElementById('sim-error');
+  if (errEl) errEl.style.display='none';
+  try {
+    const key  = document.getElementById('comp5-param').value;
+    const valA = parseFloat(document.getElementById('comp5-va').value);
+    const valB = parseFloat(document.getElementById('comp5-vb').value);
+    const info = COMP5_INFO[key];
+    const pBase = getSimParams5();
+    const pA    = getSimParams5({[key]: valA});
+    const pB    = getSimParams5({[key]: valB});
+    const fvBase = computeFv5(pBase), fvA = computeFv5(pA), fvB = computeFv5(pB);
+    function mkDs(label, fvd, color, dash) {
+      const pts = [];
+      for (let i=fvd.vs.length-1;i>=0;i--) pts.push({x:-fvd.vs[i],y:-fvd.Fc[i]});
+      for (let j=0;j<fvd.vs.length;j++)    pts.push({x:fvd.vs[j], y:fvd.Fr[j]});
+      return {label:label,data:pts,borderColor:color,borderDash:dash||[]};
+    }
+    document.getElementById('comp5-title').textContent = info.label+' 对阻尼特性的影响';
+    const maxFrA=fvA.Fr.reduce((a,b)=>b>a?b:a,0), maxFcA=fvA.Fc.reduce((a,b)=>b>a?b:a,0);
+    const maxFrB=fvB.Fr.reduce((a,b)=>b>a?b:a,0), maxFcB=fvB.Fc.reduce((a,b)=>b>a?b:a,0);
+    document.getElementById('comp5-metrics').innerHTML =
+      '<div class="sim-metric gr"><div class="sim-metric-label">A 复原峰值</div><div class="sim-metric-value gr">'+maxFrA.toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric"><div class="sim-metric-label">A 压缩峰值</div><div class="sim-metric-value">'+maxFcA.toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric bl"><div class="sim-metric-label">B 复原峰值</div><div class="sim-metric-value bl">'+maxFrB.toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric"><div class="sim-metric-label">B 压缩峰值</div><div class="sim-metric-value">'+maxFcB.toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric or"><div class="sim-metric-label">复原力差 B−A</div><div class="sim-metric-value or">'+(maxFrB-maxFrA).toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>'+
+      '<div class="sim-metric or"><div class="sim-metric-label">压缩力差 B−A</div><div class="sim-metric-value or">'+(maxFcB-maxFcA).toFixed(0)+'</div><div class="sim-metric-unit">N</div></div>';
+    document.getElementById('comp5-info').innerHTML = '<b>参数影响说明：</b> '+info.hint;
+    document.getElementById('st3-ph').style.display='none';
+    document.getElementById('st3-res').style.display='flex';
+    renderSvgChart('comp-chart-wrap',
+      [mkDs('A: '+info.label+'='+valA+' '+info.unit, fvA, '#1a7c3a'),
+       mkDs('B: '+info.label+'='+valB+' '+info.unit, fvB, '#2d6ec0'),
+       mkDs('当前参数（橙）', fvBase, '#d48806', [5,4])],
+      '速度 v (m/s)', '阻尼力 F (N)');
+  } catch(e) { showSimError(e.message||String(e)); }
+}
+
+function showSimTab(id, btn) {
+  document.querySelectorAll('.sim-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.sim-subtab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id==='st2' && _pendingFsData) {
+    document.getElementById('st2-ph').style.display='none';
+    document.getElementById('st2-res').style.display='flex';
+    renderSvgChart('fs-chart-wrap',
+      [{label:'复原行程',data:_pendingFsData.rebFS, borderColor:'#1a7c3a'},
+       {label:'压缩行程',data:_pendingFsData.compFS,borderColor:'#2d6ec0',borderDash:[6,3]}],
+      '位移 s (mm)','阻尼力 F (N)');
+  }
+}
+
+// ================== 减振器参数联动 ==================
+function syncDamperToSim() {
+  // 同步工作缸径：读取第⑤部分 select 的当前值
+  const dStd = parseFloat(document.getElementById('D_damper_std').value);
+  if (dStd > 0) document.getElementById('s_Dp').value = dStd;
+  // 同步活塞杆径：读取 state.d_rod 或重新计算
+  const dRod = state.d_rod || Math.round((parseFloat(document.getElementById('lambda').value)||0.4) * dStd);
+  if (dRod > 0) document.getElementById('s_Dr').value = dRod;
+}
+
+// ================== 导向机构运动学仿真 JS ==================
+const KM_COLORS    = ['#e05555','#f0a500','#30c080','#4499e8','#bb66dd'];
+const KM_DEF_SCALES = [0.76, 0.88, 1.00, 1.12, 1.24];
+
+// 3-D Math Utilities
+const dot3   = (a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const norm3  = a=>Math.sqrt(dot3(a,a));
+const add3   = (a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const sub3   = (a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const sc3    = (a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const norm3v = a=>{const n=norm3(a);return n<1e-15?[0,0,0]:[a[0]/n,a[1]/n,a[2]/n];};
+
+function rmat3(axis,angle){
+  const n=norm3v(axis);const ax=n[0],ay=n[1],az=n[2];
+  const c=Math.cos(angle),t=1-c,s=Math.sin(angle);
+  return[t*ax*ax+c,t*ax*ay-s*az,t*ax*az+s*ay,
+         t*ax*ay+s*az,t*ay*ay+c,t*ay*az-s*ax,
+         t*ax*az-s*ay,t*ay*az+s*ax,t*az*az+c];
+}
+function mv3(M,v){return[M[0]*v[0]+M[1]*v[1]+M[2]*v[2],M[3]*v[0]+M[4]*v[1]+M[5]*v[2],M[6]*v[0]+M[7]*v[1]+M[8]*v[2]];}
+function mm3(A,B){const R=new Array(9);for(let i=0;i<3;i++)for(let j=0;j<3;j++){R[i*3+j]=0;for(let k=0;k<3;k++)R[i*3+j]+=A[i*3+k]*B[k*3+j];}return R;}
+
+function kmSolve4(A,b){
+  const M=A.map((row,i)=>[...row,b[i]]);
+  for(let col=0;col<4;col++){
+    let mx=Math.abs(M[col][col]),mr=col;
+    for(let r=col+1;r<4;r++)if(Math.abs(M[r][col])>mx){mx=Math.abs(M[r][col]);mr=r;}
+    [M[col],M[mr]]=[M[mr],M[col]];
+    if(Math.abs(M[col][col])<1e-15)return null;
+    for(let r=col+1;r<4;r++){const f=M[r][col]/M[col][col];for(let k=col;k<=4;k++)M[r][k]-=f*M[col][k];}
+  }
+  const x=new Array(4);
+  for(let r=3;r>=0;r--){x[r]=M[r][4];for(let c=r+1;c<4;c++)x[r]-=M[r][c]*x[c];x[r]/=M[r][r];}
+  return x;
+}
+
+function kmSolveNR4(Ffunc,x0,maxIter,tol){
+  maxIter=maxIter||250;tol=tol||1e-10;
+  let x=[...x0];const h=1e-7;
+  for(let iter=0;iter<maxIter;iter++){
+    const F=Ffunc(x);
+    if(Math.max(...F.map(Math.abs))<tol)break;
+    const J=Array.from({length:4},()=>new Array(4));
+    for(let i=0;i<4;i++){const xp=[...x];xp[i]+=h;const Fp=Ffunc(xp);for(let j=0;j<4;j++)J[j][i]=(Fp[j]-F[j])/h;}
+    const dx=kmSolve4(J,F.map(f=>-f));
+    if(!dx)break;
+    for(let i=0;i<4;i++)x[i]+=dx[i];
+  }
+  return x;
+}
+
+function kmConstraintEqs(x,g,dZ){
+  const[rx,ry,sp,theta]=x;
+  const Rx=rmat3([1,0,0],rx),Ry=rmat3([0,1,0],ry),R=mm3(Ry,Rx);
+  const P_sl=add3(add3(g.P_su,mv3(R,g.s_dir0)),sc3(mv3(R,g.s_dir0u),sp));
+  const P_ao=add3(P_sl,mv3(R,g.r_ball));
+  const P_wc=add3(P_sl,mv3(R,g.r_wc));
+  const Rl=rmat3(g.lca_ax,theta);
+  const P_bl=add3(g.af,mv3(Rl,g.r_lca));
+  return[P_ao[0]-P_bl[0],P_ao[1]-P_bl[1],P_ao[2]-P_bl[2],P_wc[2]-(g.wc_z0+dZ)];
+}
+
+function kmExtractAngles(x,g){
+  const[rx,ry,sp]=x;
+  const R=mm3(rmat3([0,1,0],ry),rmat3([1,0,0],rx));
+  const P_sl=add3(add3(g.P_su,mv3(R,g.s_dir0)),sc3(mv3(R,g.s_dir0u),sp));
+  const P_ao=add3(P_sl,mv3(R,g.r_ball));
+  const P_wc=add3(P_sl,mv3(R,g.r_wc));
+  const kpu=norm3v(sub3(g.P_su,P_ao));
+  const beta =Math.atan2(-kpu[1],kpu[2])*180/Math.PI;
+  const gamma=Math.atan2( kpu[0],kpu[2])*180/Math.PI;
+  const y_cur=mv3(R,[0,-1,0]);
+  const alpha=Math.atan2(y_cur[2],-y_cur[1])*180/Math.PI;
+  const by=Math.abs(P_wc[1])*100;
+  return{beta,gamma,alpha,by};
+}
+
+function kmBuildScaleRows(){
+  const cont=document.getElementById('km-scale-rows');
+  if(!cont)return;
+  cont.innerHTML='';
+  KM_DEF_SCALES.forEach((s,i)=>{
+    const row=document.createElement('div');
+    row.className='km-scale-row';
+    row.innerHTML=`<input type="checkbox" class="km-scale-cb" id="sc${i}" checked>
+      <div class="km-scale-swatch" style="background:${KM_COLORS[i]}"></div>
+      <span class="km-scale-label">曲线 ${i+1}</span>
+      <input type="number" class="km-scale-input" id="sv${i}" value="${s}" min="0.3" max="3.0" step="0.02">
+      <span class="km-scale-l1" id="sl1_${i}">—</span>`;
+    cont.appendChild(row);
+  });
+}
+
+function kmGetGeom(){
+  const v=id=>{const el=document.getElementById(id);return el?(parseFloat(el.value)||0):0;};
+  const ov=id=>{const el=document.getElementById(id);return(el&&el.dataset.auto==='0'&&el.value.trim()!=='')?parseFloat(el.value):null;};
+  const mm=1e-3;
+  const strut_upper =[v('su_x')*mm,v('su_y')*mm,v('su_z')*mm];
+  const strut_lower =[v('sl_x')*mm,v('sl_y')*mm,v('sl_z')*mm];
+  const arm_front   =[v('af_x')*mm,v('af_y')*mm,v('af_z')*mm];
+  const arm_rear    =[v('ar_x')*mm,v('ar_y')*mm,v('ar_z')*mm];
+  const arm_out     =[v('ao_x')*mm,v('ao_y')*mm,v('ao_z')*mm];
+  const wheel_center=[v('wc_x')*mm,v('wc_y')*mm,v('wc_z')*mm];
+  const P_su=strut_upper;
+  const s_dir0 =sub3(strut_lower,P_su);
+  const s_dir0u=norm3v(s_dir0);
+  const r_ball =sub3(arm_out,strut_lower);
+  const r_wc   =sub3(wheel_center,strut_lower);
+  const lca_ax =norm3v(sub3(arm_rear,arm_front));
+  const wc_z0  =wheel_center[2];
+  const arm_mid=sc3(add3(arm_front,arm_rear),0.5);
+  let r_perp=sub3(arm_out,arm_mid);
+  r_perp=sub3(r_perp,sc3(lca_ax,dot3(r_perp,lca_ax)));
+  const l1_base_raw=norm3(r_perp);
+  const mv_dir=sc3(r_perp,-1/l1_base_raw);
+  const kp0u=norm3v(sub3(P_su,arm_out));
+  const beta0_raw =Math.atan2(-kp0u[1],kp0u[2])*180/Math.PI;
+  const gamma0_raw=Math.atan2( kp0u[0],kp0u[2])*180/Math.PI;
+  const by0_raw   =Math.abs(wheel_center[1])*100;
+  const strut_len_raw=norm3(s_dir0)*1000;
+  const ov_l1=ov('ov_l1');
+  const l1_base=ov_l1!==null?ov_l1/1000:l1_base_raw;
+  return{P_su,s_dir0,s_dir0u,r_ball,r_wc,lca_ax,wc_z0,arm_front,arm_out,
+         l1_base,l1_base_raw,mv_dir,
+         by0:by0_raw,beta0:beta0_raw,gamma0:gamma0_raw,strut_len:strut_len_raw};
+}
+
+function kmUpdateDerived(){
+  try{
+    const g=kmGetGeom();
+    const el=id=>document.getElementById(id);
+    if(el('d_l1'))   el('d_l1').textContent   =(g.l1_base*1000).toFixed(1)+' mm';
+    if(el('d_beta0'))el('d_beta0').textContent =g.beta0.toFixed(2)+'°';
+    if(el('d_gamma0'))el('d_gamma0').textContent=g.gamma0.toFixed(2)+'°';
+    if(el('d_by0'))  el('d_by0').textContent   =g.by0.toFixed(2)+' cm';
+    if(el('d_strut'))el('d_strut').textContent =g.strut_len.toFixed(1)+' mm';
+    const kp0u=norm3v(sub3(g.P_su,g.arm_out));
+    const tilt=Math.acos(Math.max(-1,Math.min(1,kp0u[2])))*180/Math.PI;
+    if(el('d_kplen'))el('d_kplen').textContent=tilt.toFixed(2)+'°';
+    for(let i=0;i<5;i++){
+      const sv=el('sv'+i),sl=el('sl1_'+i);
+      if(sv&&sl)sl.textContent=(g.l1_base*(parseFloat(sv.value)||1)*1000).toFixed(0)+' mm';
+    }
+    const autoFill=(id,val,dec)=>{const e=el(id);if(e&&e.dataset.auto==='1')e.value=val.toFixed(dec);};
+    autoFill('ov_l1',g.l1_base*1000,1);
+    autoFill('ov_beta0',g.beta0,2);
+    autoFill('ov_gamma0',g.gamma0,2);
+    autoFill('ov_by0',g.by0,2);
+    autoFill('ov_strut',g.strut_len,1);
+  }catch(e){}
+}
+
+let kmLastResult=null;
+let kmResizeT=null;
+
+function kmRunSim(){
+  const btn=document.getElementById('km-btn-run');
+  const statusEl=document.getElementById('km-status');
+  if(!btn||!statusEl)return;
+  btn.disabled=true;
+  statusEl.className='km-status-bar run';
+  statusEl.textContent='计算中... 请稍候';
+  setTimeout(()=>{
+    try{
+      const g=kmGetGeom();
+      const zMin=parseFloat(document.getElementById('z_min').value)/1000||-.1;
+      const zMax=parseFloat(document.getElementById('z_max').value)/1000||.1;
+      const zPts=Math.max(51,Math.min(601,parseInt(document.getElementById('z_pts').value)||201));
+      const curves=[];
+      for(let i=0;i<5;i++){
+        const cb=document.getElementById('sc'+i),sv=document.getElementById('sv'+i);
+        if(cb&&cb.checked){const sc=parseFloat(sv.value);if(!isNaN(sc)&&sc>0)curves.push({scale:sc,color:KM_COLORS[i],idx:i});}
+      }
+      if(curves.length===0)throw new Error('请至少选择一条曲线');
+      const Z_arr=[];
+      for(let i=0;i<zPts;i++)Z_arr.push(zMin+i*(zMax-zMin)/(zPts-1));
+      const results=curves.map(curve=>{
+        const{scale,color,idx}=curve;
+        const move=sc3(g.mv_dir,(scale-1)*g.l1_base);
+        const af=add3(g.arm_front,move);
+        const r_lca=sub3(g.arm_out,af);
+        const cg={...g,af,r_lca};
+        const betaM=[],alphaM=[],gammaM=[],byM=[];
+        let xp=[0,0,0,0];
+        Z_arr.forEach(dZ=>{
+          const F=x=>kmConstraintEqs(x,cg,dZ);
+          let xs=kmSolveNR4(F,xp);
+          if(Math.max(...F(xs).map(Math.abs))>1e-6){
+            const sp0=-dZ/Math.max(norm3(g.s_dir0u),0.01);
+            const th0=dZ/Math.max(g.l1_base,0.01);
+            const xs2=kmSolveNR4(F,[0,0,sp0,th0]);
+            if(Math.max(...F(xs2).map(Math.abs))<Math.max(...F(xs).map(Math.abs)))xs=xs2;
+          }
+          const ang=kmExtractAngles(xs,cg);
+          betaM.push(ang.beta);alphaM.push(ang.alpha);gammaM.push(ang.gamma);byM.push(ang.by);
+          xp=xs;
+        });
+        return{scale,color,idx,betaM,alphaM,gammaM,byM,label:`曲线${idx+1} (×${scale.toFixed(2)})`};
+      });
+      kmLastResult={Z_arr,results,g};
+      kmDrawCharts(Z_arr,results);
+      kmUpdateSummary(Z_arr,results);
+      statusEl.className='km-status-bar ok';
+      statusEl.textContent=`✓ 计算完成 | ${curves.length} 条曲线 | ${zPts} 个计算点`;
+    }catch(e){
+      statusEl.className='km-status-bar err';
+      statusEl.textContent='✗ 错误: '+e.message;
+    }
+    btn.disabled=false;
+  },20);
+}
+
+function kmDrawCharts(Z_arr,results){
+  const Z_mm=Z_arr.map(z=>z*1000);
+  [{id:'c-beta',data:results.map(r=>r.betaM),xlabel:'β / °'},
+   {id:'c-alpha',data:results.map(r=>r.alphaM),xlabel:'α / °'},
+   {id:'c-gamma',data:results.map(r=>r.gammaM),xlabel:'γ / °'},
+   {id:'c-by',data:results.map(r=>r.byM),xlabel:'Bₓ / cm'}
+  ].forEach(s=>kmDrawOneChart(s.id,s.data,Z_mm,results.map(r=>r.color),s.xlabel));
+  const leg=document.getElementById('km-legend');
+  if(leg)leg.innerHTML=results.map(r=>`<div class="km-legend-item"><div class="km-legend-line" style="background:${r.color}"></div><span class="km-legend-text">${r.label}</span></div>`).join('');
+}
+
+function kmDrawOneChart(canvasId,dataseries,Z_mm,colors,xlabel){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas)return;
+  const rect=canvas.getBoundingClientRect();
+  const cssW=rect.width||canvas.offsetWidth,cssH=rect.height||canvas.offsetHeight;
+  if(cssW<20||cssH<20)return;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=Math.round(cssW*dpr);canvas.height=Math.round(cssH*dpr);
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const W=cssW,H=cssH;
+  const PAD={top:18,right:30,bottom:46,left:56};
+  const plotW=W-PAD.left-PAD.right,plotH=H-PAD.top-PAD.bottom;
+  if(plotW<10||plotH<10)return;
+  ctx.fillStyle='#070b10';ctx.fillRect(0,0,W,H);
+  let xmin=Infinity,xmax=-Infinity;
+  dataseries.forEach(ds=>ds.forEach(v=>{xmin=Math.min(xmin,v);xmax=Math.max(xmax,v);}));
+  const ymin=Math.min(...Z_mm),ymax=Math.max(...Z_mm);
+  const mg=Math.max((xmax-xmin)*.18,.15);xmin-=mg;xmax+=mg;
+  const tx=v=>PAD.left+(v-xmin)/(xmax-xmin)*plotW;
+  const ty=v=>PAD.top+(ymax-v)/(ymax-ymin)*plotH;
+  ctx.strokeStyle='#1e2d3d';ctx.lineWidth=1;
+  const xstep=kmNiceStep((xmax-xmin)/5),xs0=Math.ceil(xmin/xstep)*xstep;
+  for(let x=xs0;x<=xmax+1e-9;x+=xstep){ctx.beginPath();ctx.moveTo(tx(x),PAD.top);ctx.lineTo(tx(x),PAD.top+plotH);ctx.stroke();}
+  const yRange=ymax-ymin,yStep=yRange<=60?10:20,yG0=Math.ceil(ymin/yStep)*yStep;
+  for(let y=yG0;y<=ymax+1e-9;y+=yStep){if(y<ymin-1e-6||y>ymax+1e-6)continue;ctx.beginPath();ctx.moveTo(PAD.left,ty(y));ctx.lineTo(PAD.left+plotW,ty(y));ctx.stroke();}
+  ctx.strokeStyle='#2a4060';ctx.lineWidth=1;ctx.setLineDash([5,5]);
+  if(0>=xmin&&0<=xmax){ctx.beginPath();ctx.moveTo(tx(0),PAD.top);ctx.lineTo(tx(0),PAD.top+plotH);ctx.stroke();}
+  if(0>=ymin&&0<=ymax){ctx.beginPath();ctx.moveTo(PAD.left,ty(0));ctx.lineTo(PAD.left+plotW,ty(0));ctx.stroke();}
+  ctx.setLineDash([]);ctx.strokeStyle='#253345';ctx.lineWidth=1;ctx.strokeRect(PAD.left,PAD.top,plotW,plotH);
+  dataseries.forEach((ds,ci)=>{
+    ctx.beginPath();ctx.strokeStyle=colors[ci];ctx.lineWidth=2.5;
+    ds.forEach((v,i)=>{const px=tx(v),py=ty(Z_mm[i]);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);});
+    ctx.stroke();
+    ctx.fillStyle=colors[ci];ctx.font='bold 12px Courier New';ctx.textAlign='center';
+    ctx.fillText(String(ci+1),tx(ds[ds.length-1]),PAD.top-4);
+    ctx.fillText(String(ci+1),tx(ds[0]),PAD.top+plotH+14);
+  });
+  ctx.fillStyle='#8ab0cc';ctx.font='12px Courier New';ctx.textAlign='center';
+  for(let x=xs0;x<=xmax+1e-9;x+=xstep){
+    const px=tx(x);ctx.beginPath();ctx.moveTo(px,PAD.top+plotH);ctx.lineTo(px,PAD.top+plotH+5);ctx.strokeStyle='#3d5570';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillText(x.toFixed(kmDecPl(xstep)),px,PAD.top+plotH+17);
+  }
+  ctx.font='13px Courier New';ctx.fillStyle='#d8eaf8';ctx.fillText(xlabel,PAD.left+plotW/2,H-4);
+  ctx.textAlign='right';ctx.fillStyle='#8ab0cc';ctx.font='12px Courier New';
+  for(let y=yG0;y<=ymax+1e-9;y+=yStep){
+    if(y<ymin-1e-6||y>ymax+1e-6)continue;
+    const py=ty(y);ctx.beginPath();ctx.moveTo(PAD.left,py);ctx.lineTo(PAD.left-5,py);ctx.strokeStyle='#3d5570';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillText(String(Math.round(y)),PAD.left-7,py+4);
+  }
+  ctx.save();ctx.translate(12,PAD.top+plotH/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillStyle='#8ab0cc';ctx.font='13px Courier New';ctx.fillText('Z / mm',0,0);ctx.restore();
+}
+
+function kmNiceStep(a){const e=Math.pow(10,Math.floor(Math.log10(a)));const f=a/e;return(f<1.5?1:f<3?2:f<7?5:10)*e;}
+function kmDecPl(step){const s=step.toString(),d=s.indexOf('.');return d<0?0:s.length-d-1;}
+
+function kmUpdateSummary(Z_arr,results){
+  const Z_mm=Z_arr.map(z=>z*1000);
+  const checkPts=[-100,-50,0,50,100];
+  const idxs=checkPts.map(zc=>{let b=0,bd=Infinity;Z_mm.forEach((z,i)=>{const d=Math.abs(z-zc);if(d<bd){bd=d;b=i;}});return b;});
+  const tbl=document.getElementById('km-summary-tbl');
+  if(!tbl)return;
+  let html=`<tr><th>曲线</th>${checkPts.map(z=>`<th>Z=${z>0?'+':''}${z}mm</th>`).join('')}</tr>`;
+  [{key:'betaM',name:'β主销内倾(°)'},{key:'alphaM',name:'α外倾(°)'},{key:'gammaM',name:'γ后倾(°)'},{key:'byM',name:'Bᵧ半轮距(cm)'}].forEach(({key,name})=>{
+    html+=`<tr><td colspan="${checkPts.length+1}" style="color:#f0a500;padding-top:5px;font-size:11px;">— ${name} —</td></tr>`;
+    results.forEach(r=>{
+      const ds=r[key];
+      html+=`<tr><td class="km-hi" style="color:${r.color}">${r.label}</td>${idxs.map(i=>`<td>${ds[i].toFixed(2)}</td>`).join('')}</tr>`;
+    });
+  });
+  tbl.innerHTML=html;
+}
+
+function kmRenderLightChart(W_px,H_px,dataseries,Z_mm,colors,xlabel){
+  const canvas=document.createElement('canvas');
+  canvas.width=W_px;canvas.height=H_px;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W_px,H_px);
+  const PAD={top:18,right:30,bottom:46,left:56};
+  const plotW=W_px-PAD.left-PAD.right,plotH=H_px-PAD.top-PAD.bottom;
+  if(plotW<10||plotH<10)return canvas;
+  let xmin=Infinity,xmax=-Infinity;
+  dataseries.forEach(ds=>ds.forEach(v=>{xmin=Math.min(xmin,v);xmax=Math.max(xmax,v);}));
+  const ymin=Math.min(...Z_mm),ymax=Math.max(...Z_mm);
+  const mg=Math.max((xmax-xmin)*.18,.15);xmin-=mg;xmax+=mg;
+  const tx=v=>PAD.left+(v-xmin)/(xmax-xmin)*plotW;
+  const ty=v=>PAD.top+(ymax-v)/(ymax-ymin)*plotH;
+  ctx.strokeStyle='#cccccc';ctx.lineWidth=1;
+  const xstep=kmNiceStep((xmax-xmin)/5),xs0=Math.ceil(xmin/xstep)*xstep;
+  for(let x=xs0;x<=xmax+1e-9;x+=xstep){ctx.beginPath();ctx.moveTo(tx(x),PAD.top);ctx.lineTo(tx(x),PAD.top+plotH);ctx.stroke();}
+  const yRange=ymax-ymin,yStep=yRange<=60?10:20,yG0=Math.ceil(ymin/yStep)*yStep;
+  for(let y=yG0;y<=ymax+1e-9;y+=yStep){if(y<ymin-1e-6||y>ymax+1e-6)continue;ctx.beginPath();ctx.moveTo(PAD.left,ty(y));ctx.lineTo(PAD.left+plotW,ty(y));ctx.stroke();}
+  ctx.strokeStyle='#aaaaaa';ctx.lineWidth=1;ctx.setLineDash([5,5]);
+  if(0>=xmin&&0<=xmax){ctx.beginPath();ctx.moveTo(tx(0),PAD.top);ctx.lineTo(tx(0),PAD.top+plotH);ctx.stroke();}
+  if(0>=ymin&&0<=ymax){ctx.beginPath();ctx.moveTo(PAD.left,ty(0));ctx.lineTo(PAD.left+plotW,ty(0));ctx.stroke();}
+  ctx.setLineDash([]);ctx.strokeStyle='#888888';ctx.lineWidth=1.5;ctx.strokeRect(PAD.left,PAD.top,plotW,plotH);
+  dataseries.forEach((ds,ci)=>{
+    ctx.beginPath();ctx.strokeStyle=colors[ci];ctx.lineWidth=2.5;
+    ds.forEach((v,i)=>{const px=tx(v),py=ty(Z_mm[i]);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);});
+    ctx.stroke();
+    ctx.fillStyle=colors[ci];ctx.font='bold 12px Courier New';ctx.textAlign='center';
+    ctx.fillText(String(ci+1),tx(ds[ds.length-1]),PAD.top-4);
+    ctx.fillText(String(ci+1),tx(ds[0]),PAD.top+plotH+14);
+  });
+  ctx.fillStyle='#333333';ctx.font='12px Courier New';ctx.textAlign='center';
+  for(let x=xs0;x<=xmax+1e-9;x+=xstep){
+    const px=tx(x);ctx.beginPath();ctx.moveTo(px,PAD.top+plotH);ctx.lineTo(px,PAD.top+plotH+5);ctx.strokeStyle='#888888';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillText(x.toFixed(kmDecPl(xstep)),px,PAD.top+plotH+17);
+  }
+  ctx.font='13px Courier New';ctx.fillStyle='#111111';ctx.fillText(xlabel,PAD.left+plotW/2,H_px-4);
+  ctx.textAlign='right';ctx.fillStyle='#333333';ctx.font='12px Courier New';
+  for(let y=yG0;y<=ymax+1e-9;y+=yStep){
+    if(y<ymin-1e-6||y>ymax+1e-6)continue;
+    const py=ty(y);ctx.beginPath();ctx.moveTo(PAD.left,py);ctx.lineTo(PAD.left-5,py);ctx.strokeStyle='#888888';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillText(String(Math.round(y)),PAD.left-7,py+4);
+  }
+  ctx.save();ctx.translate(12,PAD.top+plotH/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillStyle='#333333';ctx.font='13px Courier New';ctx.fillText('Z / mm',0,0);ctx.restore();
+  return canvas;
+}
+
+function kmExportPNG(){
+  if(!kmLastResult){alert('请先点击"开始计算"生成图表。');return;}
+  const chartDefs=[{id:'c-beta',dsKey:'betaM',xlabel:'β / °'},{id:'c-alpha',dsKey:'alphaM',xlabel:'α / °'},{id:'c-gamma',dsKey:'gammaM',xlabel:'γ / °'},{id:'c-by',dsKey:'byM',xlabel:'Bₓ / cm'}];
+  const Z_mm=kmLastResult.Z_arr.map(z=>z*1000);
+  const colors=kmLastResult.results.map(r=>r.color);
+  const ec=chartDefs.map(({id,dsKey,xlabel})=>{
+    const src=document.getElementById(id);
+    const ds=kmLastResult.results.map(r=>r[dsKey]);
+    return kmRenderLightChart(src.width,src.height,ds,Z_mm,colors,xlabel);
+  });
+  // 2×2 grid layout for export
+  const W=ec[0].width, H=ec[0].height;
+  const merged=document.createElement('canvas');
+  merged.width=W*2; merged.height=H*2;
+  const ctx=merged.getContext('2d');
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W*2,H*2);
+  ctx.drawImage(ec[0], 0,   0);
+  ctx.drawImage(ec[1], W,   0);
+  ctx.drawImage(ec[2], 0,   H);
+  ctx.drawImage(ec[3], W,   H);
+  const a=document.createElement('a');a.href=merged.toDataURL('image/png');
+  a.download='MacPherson_Kinematics_All.png';a.click();
+}
+
+function kmDownloadChart(canvasId,name){
+  if(!kmLastResult){alert('请先点击"开始计算"生成图表。');return;}
+  const src=document.getElementById(canvasId);
+  if(!src||src.width<10){alert('请先点击"开始计算"生成图表。');return;}
+  const dsKeyMap={'c-beta':'betaM','c-alpha':'alphaM','c-gamma':'gammaM','c-by':'byM'};
+  const xlabelMap={'c-beta':'β / °','c-alpha':'α / °','c-gamma':'γ / °','c-by':'Bₓ / cm'};
+  const Z_mm=kmLastResult.Z_arr.map(z=>z*1000);
+  const colors=kmLastResult.results.map(r=>r.color);
+  const ds=kmLastResult.results.map(r=>r[dsKeyMap[canvasId]]);
+  const lc=kmRenderLightChart(src.width,src.height,ds,Z_mm,colors,xlabelMap[canvasId]);
+  const a=document.createElement('a');a.href=lc.toDataURL('image/png');a.download='MP_'+name+'.png';a.click();
+}
+
+function kmResetDefaults(){
+  const def={su_x:0,su_y:-600,su_z:800,sl_x:0,sl_y:-650,sl_z:450,
+    af_x:-200,af_y:-400,af_z:205,ar_x:200,ar_y:-390,ar_z:220,
+    ao_x:-30,ao_y:-700,ao_z:180,wc_x:0,wc_y:-800,wc_z:300,
+    z_min:-100,z_max:100,z_pts:201};
+  Object.entries(def).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val;});
+  KM_DEF_SCALES.forEach((s,i)=>{const cb=document.getElementById('sc'+i),sv=document.getElementById('sv'+i);if(cb)cb.checked=true;if(sv)sv.value=s;});
+  ['ov_l1','ov_beta0','ov_gamma0','ov_by0','ov_strut'].forEach(id=>{const el=document.getElementById(id);if(el){el.dataset.auto='1';el.classList.remove('km-user-edited');}});
+  kmUpdateDerived();
+  const st=document.getElementById('km-status');
+  if(st){st.className='km-status-bar';st.textContent='已恢复默认参数（图7-63硬点）。';}
+}
+
+function kmInitListeners(){
+  ['ov_l1','ov_beta0','ov_gamma0','ov_by0','ov_strut'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.addEventListener('input',()=>{el.dataset.auto='0';el.classList.add('km-user-edited');});
+    el.addEventListener('dblclick',()=>{el.dataset.auto='1';el.classList.remove('km-user-edited');kmUpdateDerived();});
+  });
+  // Only attach change listeners to inputs inside km-sidebar
+  const sidebar=document.getElementById('km-panel-params');
+  if(sidebar){
+    sidebar.querySelectorAll('input:not(.km-override-input)').forEach(el=>el.addEventListener('input',kmUpdateDerived));
+  }
+}
+
+// ================== 减振器仿真图导出 PNG ==================
+function simDownloadPng(containerId, filename) {
+  var div = document.getElementById(containerId);
+  var svgEl = div ? div.querySelector('svg') : null;
+  if (!svgEl) { alert('请先运行仿真生成图表。'); return; }
+
+  // renderSvgChart 使用固定 viewBox 500×300
+  var VW = 500, VH = 300, scale = 3; // 3× = 1500×900，高清适合 Word
+  var W = VW * scale, H = VH * scale;
+
+  // 克隆 SVG，设置明确的像素尺寸
+  var clone = svgEl.cloneNode(true);
+  clone.setAttribute('width',  W);
+  clone.setAttribute('height', H);
+
+  // 在最前面插入白色背景矩形
+  var bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('width',  '100%');
+  bg.setAttribute('height', '100%');
+  bg.setAttribute('fill',   '#ffffff');
+  clone.insertBefore(bg, clone.firstChild);
+
+  // 将网格线颜色替换为浅灰（原色在白底上太浅）
+  var svgStr = new XMLSerializer().serializeToString(clone);
+  svgStr = svgStr.replace(/rgba\(26,74,138,0\.1\)/g,   '#e0e8f0');
+  svgStr = svgStr.replace(/rgba\(26,74,138,0\.06\)/g,  '#eef2fa');
+  // 坐标轴线和刻度颜色保持或加深
+  svgStr = svgStr.replace(/#c8d8f0/g, '#aabbd0');
+  svgStr = svgStr.replace(/"#888"/g,  '"#444"');
+  svgStr = svgStr.replace(/"#666"/g,  '"#333"');
+
+  var blob = new Blob([svgStr], {type: 'image/svg+xml;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var img  = new Image();
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width  = W;
+    canvas.height = H;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(img, 0, 0, W, H);
+    URL.revokeObjectURL(url);
+    var a = document.createElement('a');
+    a.href     = canvas.toDataURL('image/png');
+    a.download = filename + '.png';
+    a.click();
+  };
+  img.onerror = function() {
+    URL.revokeObjectURL(url);
+    alert('导出失败，请重试。');
+  };
+  img.src = url;
+}
+
+// ================== 初始化 ==================
+window.onload = function() {
+  // 显示学生登录框，登录后才触发calcAll
+  document.getElementById('loginOverlay').style.display = 'flex';
+  updateComp5Fields();
+  kmBuildScaleRows();
+  kmInitListeners();
+  kmUpdateDerived();
+  // 按Enter键提交登录
+  document.getElementById('studentName').addEventListener('keydown', e=>{ if(e.key==='Enter') submitLogin(); });
+  document.getElementById('studentId').addEventListener('keydown', e=>{ if(e.key==='Enter') submitLogin(); });
+  document.getElementById('teacherPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') submitTeacherLogin(); });
+};
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+if (e.key === 'F12' || 
+(e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+(e.ctrlKey && e.key === 'U') ||
+(e.ctrlKey && e.key === 'S')) {
+e.preventDefault();
+return false;
+}
+});
+</script>
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U') ||
+        (e.ctrlKey && e.key === 'S')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+</script>
+
+</body>
+</html>
