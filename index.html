@@ -406,10 +406,32 @@
     .score-details { grid-template-columns: 1fr 1fr; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
   }
+  
+  .upload-zone.dragover { border-color: var(--blue); background: #e8eef8; }
+  .upload-zone .uz-icon { font-size: 48px; margin-bottom: 10px; }
+  .upload-zone .uz-text { font-size: 14px; color: #666; }
+  .upload-zone .uz-hint { font-size: 12px; color: #999; margin-top: 8px; }
+  .upload-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .file-chosen { font-size: 12px; color: #555; flex: 1; word-break: break-all; }
+  .grade-criteria { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 14px 0; }
+  .grade-criteria-item { background: #f0f6ff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+  .grade-criteria-item .pct { font-size: 28px; font-weight: 700; color: var(--blue); }
+  .grade-criteria-item .lbl { font-size: 12px; color: #555; margin-top: 4px; }
+  .grade-criteria-item .desc { font-size: 11px; color: #888; margin-top: 2px; line-height: 1.4; }
+  .rg-header { background: linear-gradient(135deg,#1a3560,#2d6ec0); color: white; padding: 16px 20px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px; }
+  .rg-header .rg-icon { font-size: 36px; }
+  .rg-header h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .rg-header p { font-size: 12px; opacity: .85; }
+  .ai-note { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #7a5a00; line-height: 1.6; margin-bottom: 12px; }
+  .ai-loading { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 40px 20px; }
+  .ai-loading .spinner { width: 48px; height: 48px; border: 4px solid #e0ecff; border-top: 4px solid var(--blue-light); border-radius: 50%; animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 700px) { .grade-criteria { grid-template-columns: 1fr; } }
 user-select: none
 </style>
 </head>
 <body>
+
 <!-- 学生登录界面 -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
@@ -474,45 +496,63 @@ user-select: none
   <div class="tab" onclick="switchTab(3)">④ 弹簧校核</div>
   <div class="tab" onclick="switchTab(4)">⑤ 导向机构设计</div>
   <div class="tab" onclick="switchTab(5)">⑥ 导向机构运动学仿真</div>
-  <div class="tab" onclick="switchTab(6)">⑦ 减振器设计</div>
-  <div class="tab" onclick="switchTab(7)">⑧ 减振器特性仿真</div>
-  <div class="tab" onclick="switchTab(8)">📊 汇总报告</div>
-  <div class="tab" onclick="switchTab(9)">🏆 智能评分报告</div>
+  <div class="tab" onclick="switchTab(6)">⑦ 横向稳定杆</div>
+  <div class="tab" onclick="switchTab(7)">⑧ 减振器设计</div>
+  <div class="tab" onclick="switchTab(8)">⑨ 减振器特性仿真</div>
+  <div class="tab" onclick="switchTab(9)">📊 汇总报告</div>
+  <div class="tab" onclick="switchTab(10)">🏆 智能评分报告</div>
 </div>
 
 <!-- TAB 0: 整车基本参数 -->
 <div class="content active" id="tab0">
   <div class="card">
     <div class="card-title"><span class="icon">🚗</span>整车基本参数输入</div>
+    <div style="margin-bottom:14px;padding:10px 14px;background:#e8f4ff;border:1px solid #9ab4e8;border-radius:6px;display:flex;align-items:center;gap:18px">
+      <span style="font-size:13px;font-weight:700;color:#1a3060">🔧 当前设计悬架类型：</span>
+      <label style="font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
+        <input type="radio" name="suspType" id="suspType_front" value="front" checked onchange="onSuspTypeChange()">
+        <span style="color:#1a4a8a">前悬架</span>
+      </label>
+      <label style="font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
+        <input type="radio" name="suspType" id="suspType_rear" value="rear" onchange="onSuspTypeChange()">
+        <span style="color:#0d7a5f">后悬架</span>
+      </label>
+      <span id="suspTypeLabel" style="font-size:12px;color:#555;margin-left:4px">（影响偏频推荐范围、轴荷分配参数、侧倾中心评价等所有相关计算）</span>
+    </div>
     <div class="grid3">
-      <div class="field"><label>整车总质量 mₐ</label><input type="number" id="ma" value="1850"><div class="unit">kg（满载，含驾驶员+乘客+货物）</div></div>
-      <div class="field"><label>整备质量 m₀</label><input type="number" id="m0" value="1250"><div class="unit">kg（空载，含驾驶员75kg）</div></div>
+      <div class="field"><label>整车总质量 mₐ</label><input type="number" id="ma" value="2000"><div class="unit">kg（满载，含驾驶员+乘客+货物）</div></div>
+      <div class="field"><label>整备质量 m₀</label><input type="number" id="m0" value="1625"><div class="unit">kg（空载，含驾驶员75kg）</div></div>
       <div class="field"><label>发动机排量</label>
         <select id="displ">
-          <option value="small" selected>≤1.6L（小型/微型乘用车）</option>
-          <option value="medium">1.6L～2.5L（中型乘用车）</option>
+          <option value="small">≤1.6L（小型/微型乘用车）</option>
+          <option value="medium" selected>1.6L～2.5L（中型乘用车）</option>
           <option value="large">＞2.5L（大型/SUV）</option>
         </select>
       </div>
-      <div class="field"><label>前轴满载轴荷分配 φf</label><input type="number" id="phif" value="47" step="1"><div class="unit">%（例：47 即前轴承担47%满载）</div></div>
-      <div class="field"><label>前轴空载轴荷分配 φf0</label><input type="number" id="phif0" value="54" step="1"><div class="unit">%（例：54 即前轴承担54%空载）</div></div>
-      <div class="field"><label>前轴簧下质量 mu</label><input type="number" id="mu" value="80"><div class="unit">kg（独立悬架参考值：60~100 kg）</div></div>
-      <div class="field"><label>后轴簧下质量 mu_r</label><input type="number" id="mu_r" value="85"><div class="unit">kg（后轴非簧载质量，参考值：70~110 kg）</div></div>
-      <div class="field"><label>最高车速 umax</label><input type="number" id="umax" value="150"><div class="unit">km/h</div></div>
-      <div class="field"><label>轴距 L</label><input type="number" id="wheelbase" value="2720"><div class="unit">mm</div></div>
-      <div class="field"><label>前轮距 Bf</label><input type="number" id="trackf" value="1420"><div class="unit">mm</div></div>
-      <div class="field"><label>后轮距 Br</label><input type="number" id="trackr" value="1400"><div class="unit">mm（后轮距，与前轮距可不同）</div></div>
+      <div class="field"><label>前轴满载轴荷分配 φf</label><input type="number" id="phif" value="50" step="1"><div class="unit">%（例：50 即前轴承担50%满载）</div></div>
+      <div class="field"><label id="label_phir">后轴满载轴荷分配 φr</label><input type="number" id="phir" value="50" step="1"><div class="unit">%（例：50 即后轴承担50%满载）</div></div>
+      <div class="field"><label>前轴空载轴荷分配 φf0</label><input type="number" id="phif0" value="60" step="1"><div class="unit">%（例：60 即前轴承担60%空载）</div></div>
+      <div class="field"><label id="label_phir0">后轴空载轴荷分配 φr0</label><input type="number" id="phir0" value="40" step="1"><div class="unit">%（例：40 即后轴承担40%空载）</div></div>
+      <div class="field"><label>前轴簧下质量 mu</label><input type="number" id="mu" value="70"><div class="unit">kg（独立悬架参考值：60~100 kg）</div></div>
+      <div class="field"><label>后轴簧下质量 mu_r</label><input type="number" id="mu_r" value="80"><div class="unit">kg（后轴非簧载质量，参考值：70~110 kg）</div></div>
+      <div class="field"><label>最高车速 umax</label><input type="number" id="umax" value="180"><div class="unit">km/h</div></div>
+      <div class="field"><label>轴距 L</label><input type="number" id="wheelbase" value="2680"><div class="unit">mm</div></div>
+      <div class="field"><label>前轮距 Bf</label><input type="number" id="trackf" value="1500"><div class="unit">mm</div></div>
+      <div class="field"><label>后轮距 Br</label><input type="number" id="trackr" value="1500"><div class="unit">mm</div></div>
     </div>
     <div class="btn-bar"><button class="btn btn-primary" onclick="calcAll()">✅ 更新所有计算</button></div>
   </div>
   <div class="card">
     <div class="card-title"><span class="icon">📋</span>麦弗逊悬架设计参数推荐范围</div>
+    <div class="section-sub" style="margin-top:4px">前悬架参数推荐</div>
     <table class="result-table">
       <tr><th>参数</th><th>推荐范围</th><th>来源依据</th></tr>
-      <tr><td>前悬架偏频 n（发动机≤1.6L乘用车，满载）</td><td>1.00 ～ 1.45 Hz</td><td>《汽车设计》第7章 表7-1</td></tr>
-      <tr><td>前悬架偏频 n（发动机1.6L～2.5L乘用车，满载）</td><td>0.80 ～ 1.20 Hz</td><td>《汽车设计》第7章 表7-1</td></tr>
-      <tr><td>悬架静挠度 fc（乘用车）</td><td>80 ～ 250 mm（由偏频计算）</td><td>fc = g/(4π²n²)</td></tr>
+      <tr><td>前悬架偏频 n（排量≤1.6L乘用车，满载）</td><td>1.00 ～ 1.45 Hz</td><td>《汽车设计》第7章 表7-1</td></tr>
+      <tr><td>前悬架偏频 n（排量1.6L～2.5L乘用车，满载）</td><td>0.80 ～ 1.20 Hz</td><td>《汽车设计》第7章 表7-1</td></tr>
+      <tr><td>前悬架偏频 n（排量＞2.5L/SUV，满载）</td><td>0.70 ～ 1.10 Hz</td><td>《汽车设计》第7章 表7-1</td></tr>
+      <tr><td>悬架静挠度 fc（乘用车，前）</td><td>80 ～ 250 mm（由偏频计算）</td><td>fc = g/(4π²n²)</td></tr>
       <tr><td>悬架动挠度 fd（乘用车）</td><td>70 ～ 90 mm</td><td>《汽车设计》第7章</td></tr>
+      <tr><td>侧倾中心高度 h_W（前悬架）</td><td>0 ～ 120 mm（典型 50～80 mm）</td><td>《汽车设计》第7章</td></tr>
       <tr><td>弹簧缠绕比 C</td><td>4 ～ 16（推荐 6 ～ 9）</td><td>机械设计手册·弹簧设计</td></tr>
       <tr><td>弹簧螺旋角 α</td><td>5° ～ 9°</td><td>弹簧稳定性要求</td></tr>
       <tr><td>弹簧高径比 H₀/Dm</td><td>≤ 4（推荐≤2.6，否则需导向）</td><td>弹簧失稳条件</td></tr>
@@ -521,6 +561,19 @@ user-select: none
       <tr><td>减振器安装倾角 α_d</td><td>10° ～ 20°</td><td>麦弗逊结构特点</td></tr>
       <tr><td>减振器工作缸许用压力 [p]</td><td>3 ～ 5 MPa（推荐4 MPa）</td><td>《汽车设计》第7章</td></tr>
       <tr><td>活塞杆/工作缸直径比 λ</td><td>0.40 ～ 0.50</td><td>结构设计经验</td></tr>
+      <tr><td>横向稳定杆直径 d_stab（前）</td><td>15 ～ 25 mm</td><td>《汽车设计》第7章</td></tr>
+    </table>
+    <div class="section-sub" style="margin-top:14px">后悬架参数推荐</div>
+    <table class="result-table">
+      <tr><th>参数</th><th>推荐范围</th><th>来源依据</th></tr>
+      <tr><td>后悬架偏频 n（排量≤1.6L乘用车，满载）</td><td>1.17 ～ 1.67 Hz（前偏频×1.15～1.20倍）</td><td>《汽车设计》第7章 表7-1</td></tr>
+      <tr><td>后悬架偏频 n（排量1.6L～2.5L乘用车，满载）</td><td>0.92 ～ 1.38 Hz（前偏频×1.15～1.20倍）</td><td>《汽车设计》第7章 表7-1</td></tr>
+      <tr><td>后悬架偏频 n（排量＞2.5L/SUV，满载）</td><td>0.81 ～ 1.27 Hz（前偏频×1.15～1.20倍）</td><td>《汽车设计》第7章 表7-1</td></tr>
+      <tr><td>悬架静挠度 fc（乘用车，后）</td><td>后悬架略小于前悬架静挠度</td><td>fc = g/(4π²n²)</td></tr>
+      <tr><td>悬架动挠度 fd（乘用车）</td><td>70 ～ 90 mm</td><td>《汽车设计》第7章</td></tr>
+      <tr><td>侧倾中心高度 h_W（后悬架）</td><td>80 ～ 150 mm（典型 100～130 mm）</td><td>《汽车设计》第7章</td></tr>
+      <tr><td>后悬架弹簧安装角 α</td><td>10° ～ 25°</td><td>《汽车设计》第7章</td></tr>
+      <tr><td>稳定杆直径 d_stab（后）</td><td>12 ～ 22 mm（略小于前稳定杆）</td><td>《汽车设计》第7章</td></tr>
     </table>
   </div>
 </div>
@@ -1024,7 +1077,40 @@ user-select: none
   </div>
 </div>
 
-<!-- TAB 6new: ⑦ 减振器设计 -->
+<!-- TAB 6new: ⑦ 横向稳定杆 -->
+<div class="content" id="tab6_stab">
+  <div class="card">
+    <div class="card-title"><span class="icon">📏</span>横向稳定杆设计</div>
+    <div class="info-box">
+      <b>功能说明：</b>横向稳定杆（防倾杆）在车身侧倾时产生反倾力矩，抑制车身侧倾，提升操纵稳定性。<br>
+      <b>材料推荐：</b>60Si2MnA 弹簧钢，两端削平打孔匹配螺栓连接。
+    </div>
+    <div class="grid3">
+      <div class="field"><label>稳定杆直径 d_stab (mm)</label><input type="number" id="stab_d" value="20" step="1"><div class="unit">mm（乘用车通常15~25mm）</div></div>
+      <div class="field"><label>横向有效长度 L_t (mm)</label><input type="number" id="stab_Lt" value="800" step="10"><div class="unit">mm（连接左右悬架的横向部分）</div></div>
+      <div class="field"><label>端部弯曲长度 L_c (mm)</label><input type="number" id="stab_Lc" value="900" step="10"><div class="unit">mm（连接到控制臂或车架的端部）</div></div>
+      <div class="field"><label>弯曲半径 R (mm)</label><input type="number" id="stab_R" value="25" step="5"><div class="unit">mm</div></div>
+      <div class="field"><label>弹性模量 E (MPa)</label><input type="number" id="stab_E" value="206000"><div class="unit">MPa（钢材取206000）</div></div>
+      <div class="field"><label>剪切模量 G_stab (MPa)</label><input type="number" id="stab_G" value="78500"><div class="unit">MPa</div></div>
+    </div>
+    <div class="btn-bar"><button class="btn btn-primary" onclick="calcStabilizer()">计算横向稳定杆参数</button></div>
+    <div id="stabResult" style="margin-top:14px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span>横向稳定杆主要尺寸汇总</div>
+    <table class="result-table">
+      <tr><th>参数</th><th>符号</th><th>数值</th><th>单位</th></tr>
+      <tr><td>稳定杆直径</td><td>d</td><td id="s_d">—</td><td>mm</td></tr>
+      <tr><td>横向有效长度</td><td>L_t</td><td id="s_Lt">—</td><td>mm</td></tr>
+      <tr><td>端部弯曲长度</td><td>L_c</td><td id="s_Lc">—</td><td>mm</td></tr>
+      <tr><td>弯曲半径</td><td>R</td><td id="s_R">—</td><td>mm</td></tr>
+      <tr><td>截面惯性矩</td><td>I</td><td id="s_I">—</td><td>mm⁴</td></tr>
+      <tr><td>扭转刚度</td><td>K_stab</td><td id="s_Kstab">—</td><td>N·m/rad</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- TAB 6new: ⑧ 减振器设计 -->
 <div class="content" id="tab4">
   <div class="card">
     <div class="card-title"><span class="icon">🔧</span>筒式减振器设计</div>
@@ -1430,10 +1516,10 @@ user-select: none
     <div class="info-box">
       <strong>评分维度（共100分）：</strong><br>
       ① <strong>悬架主要参数（25分）</strong>：偏频选取、静挠度、动挠度、悬架刚度、工作行程<br>
-      ② <strong>螺旋弹簧设计（25分）</strong>：标准丝径、切应力校核、高径比、弹簧-悬架刚度匹配<br>
+      ② <strong>螺旋弹簧设计（30分）</strong>：弹簧刚度与悬架刚度匹配（10分）、标准丝径（7分）、切应力校核（7分）、高径比（6分）<br>
       ③ <strong>减振器设计（20分）</strong>：阻尼系数ξ、总阻尼力系数、标准工作缸径<br>
       ④ <strong>导向机构（20分）</strong>：主销三角参数合理性、侧倾中心高度计算、设计完整性<br>
-      ⑤ <strong>整体（10分）</strong>：各模块完成情况与设计一致性<br><br>
+      ⑤ <strong>横向稳定杆（5分）</strong>：稳定杆直径范围、扭转刚度计算完整性<br><br>
       <strong>注意：</strong>请先完成各标签页的计算，再生成评分报告。
     </div>
   </div>
@@ -1452,6 +1538,7 @@ user-select: none
     </div>
   </div>
 </div>
+
 
 
 <script>
@@ -1729,13 +1816,19 @@ function calcSuspensionScore() {
   sc.s1 = Math.min(25, Math.round(n_score + fc_score + fd_score + C_score + fw_score));
   total += sc.s1;
 
-  // ── 2. 螺旋弹簧设计（25分）──
+  // ── 2. 螺旋弹簧设计（30分）──
   const d = state.d_use || 0;
   const Dm = state.Dm || 0;
   const H0 = state.H0 || 0;
   const tau = state.tau_check || 0;
   const tau_allow = parseFloat(document.getElementById('tau_allow')?.value)||600;
   const Cs = state.Cs || 0;
+
+  // 弹簧刚度与悬架刚度匹配 (10分) — 独立给10分
+  const alpha_s = state.alpha_s_spring||0;
+  const Cs_corr = Cs*Math.pow(Math.cos(alpha_s*Math.PI/180),2);
+  const cs_diff = C_susp>0?Math.abs(Cs_corr-C_susp)/C_susp:1;
+  const cs_score = cs_diff<0.10?10:cs_diff<0.20?6:cs_diff<0.35?3:0;
 
   // 丝径合理性 (7分)：标准丝径系列
   const stds=[8,9,10,11,12,13,14,16,18,20,22,25,28,30,32];
@@ -1745,17 +1838,11 @@ function calcSuspensionScore() {
   // 强度校核 (7分)
   const tau_score = (tau>0&&tau<=tau_allow) ? 7 : (tau>0&&tau<=tau_allow*1.1?4:0);
 
-  // 高径比 (5分)
+  // 高径比 (6分)
   const hd_ratio = Dm>0?H0/Dm:0;
-  const hd_score = (hd_ratio>0&&hd_ratio<=4)?5:(hd_ratio>0&&hd_ratio<=5)?2:0;
+  const hd_score = (hd_ratio>0&&hd_ratio<=4)?6:(hd_ratio>0&&hd_ratio<=5)?3:0;
 
-  // 弹簧刚度与悬架刚度匹配 (6分)
-  const alpha_s = state.alpha_s_spring||0;
-  const Cs_corr = Cs*Math.pow(Math.cos(alpha_s*Math.PI/180),2);
-  const cs_diff = C_susp>0?Math.abs(Cs_corr-C_susp)/C_susp:1;
-  const cs_score = cs_diff<0.10?6:cs_diff<0.20?4:cs_diff<0.35?2:0;
-
-  sc.s2 = Math.min(25, Math.round(d_score + tau_score + hd_score + cs_score));
+  sc.s2 = Math.min(30, Math.round(cs_score + d_score + tau_score + hd_score));
   total += sc.s2;
 
   // ── 3. 减振器设计（20分）──
@@ -1804,14 +1891,14 @@ function calcSuspensionScore() {
   sc.s4 = Math.min(20, Math.round(pin_score + hw_score + guide_complete));
   total += sc.s4;
 
-  // ── 5. 整体（10分）──
-  // 各模块均有计算结果（10分）
-  const overall_score =
-    (state.fc>0?2:0)+(state.d_use>0?2:0)+(state.c_total>0?2:0)+(state.D_std>0?2:0)+(state.tau_check>0?2:0);
-  sc.s5 = Math.min(10, Math.round(overall_score));
-  total += sc.s5;
+  // ── 5. 横向稳定杆（5分）──
+  const stab_d_val = gv('stab_d') || 0;
+  const K_stab = state.K_stab || 0;
+  const stab_d_ok = stab_d_val >= 15 && stab_d_val <= 25;
+  const stab_k_ok = K_stab > 0;
+  sc.s5 = stab_d_ok && stab_k_ok ? 5 : (stab_k_ok ? 3 : (stab_d_ok ? 2 : 0));
 
-  total = Math.min(total, 100);
+  total = Math.min(sc.s1 + sc.s2 + sc.s3 + sc.s4 + sc.s5, 100);
   const grade = total>=90?'优秀':total>=80?'良好':total>=70?'中等':total>=60?'及格':'不及格';
   _lastScore = { total, grade, sc, n, fc, fd, C_susp, d, tau, hd_ratio, xi, D_std, c_total };
 
@@ -1827,10 +1914,10 @@ function calcSuspensionScore() {
       </div>
       <div class="score-details">
         <div class="score-detail-item"><div class="label">悬架主要参数</div><div class="value">${sc.s1} / 25</div></div>
-        <div class="score-detail-item"><div class="label">螺旋弹簧设计</div><div class="value">${sc.s2} / 25</div></div>
+        <div class="score-detail-item"><div class="label">螺旋弹簧设计</div><div class="value">${sc.s2} / 30</div></div>
         <div class="score-detail-item"><div class="label">减振器设计</div><div class="value">${sc.s3} / 20</div></div>
         <div class="score-detail-item"><div class="label">导向机构</div><div class="value">${sc.s4} / 20</div></div>
-        <div class="score-detail-item"><div class="label">整体</div><div class="value">${sc.s5} / 10</div></div>
+        <div class="score-detail-item"><div class="label">横向稳定杆</div><div class="value">${sc.s5} / 5</div></div>
       </div>
     </div>
 
@@ -1845,11 +1932,11 @@ function calcSuspensionScore() {
         <tr><td>悬架刚度 C 计算正确</td><td>${C_susp.toFixed(3)} N/mm</td><td>C=ms·g/fc 推导（4分）</td><td>${C_score}/4</td></tr>
         <tr><td>工作行程 fw 正确</td><td>${fw.toFixed(1)} mm</td><td>fw=fc+fd（3分）</td><td>${fw_score}/3</td></tr>
 
-        <tr><td><b>② 螺旋弹簧设计（共25分）</b></td><td colspan="2"></td><td><b>${sc.s2}/25</b></td></tr>
+        <tr><td><b>② 螺旋弹簧设计（共30分）</b></td><td colspan="2"></td><td><b>${sc.s2}/30</b></td></tr>
+        <tr><td>弹簧刚度与悬架刚度匹配</td><td>偏差 ${C_susp>0?(Math.abs(Cs_corr-C_susp)/C_susp*100).toFixed(1):'—'}%</td><td>偏差＜10%（10分）</td><td>${cs_score}/10</td></tr>
         <tr><td>弹簧丝径取标准值</td><td>d = ${d} mm</td><td>标准系列（7分）</td><td>${d_score}/7</td></tr>
         <tr><td>切应力满足许用值</td><td>τ = ${tau.toFixed(1)} N/mm² ≤ ${tau_allow}</td><td>强度校核合格（7分）</td><td>${tau_score}/7</td></tr>
-        <tr><td>高径比满足稳定性</td><td>H₀/Dm = ${hd_ratio.toFixed(2)}</td><td>≤ 4（5分）</td><td>${hd_score}/5</td></tr>
-        <tr><td>弹簧刚度与悬架刚度匹配</td><td>偏差 ${C_susp>0?(Math.abs(Cs_corr-C_susp)/C_susp*100).toFixed(1):'—'}%</td><td>偏差＜10%（6分）</td><td>${cs_score}/6</td></tr>
+        <tr><td>高径比满足稳定性</td><td>H₀/Dm = ${hd_ratio.toFixed(2)}</td><td>≤ 4（6分）</td><td>${hd_score}/6</td></tr>
 
         <tr><td><b>③ 减振器设计（共20分）</b></td><td colspan="2"></td><td><b>${sc.s3}/20</b></td></tr>
         <tr><td>相对阻尼系数 ξ 合理</td><td>ξ = ${xi.toFixed(3)}</td><td>0.25~0.35（7分）</td><td>${xi_score}/7</td></tr>
@@ -1863,8 +1950,9 @@ function calcSuspensionScore() {
         <tr><td>侧倾中心高度计算</td><td>${hw_val!==null?'h_W = '+hw_val.toFixed(2)+' mm':'✗ 未计算'}</td><td>已计算且 0~150mm（4分）；已计算超范围（2分）</td><td>${hw_score}/4</td></tr>
         <tr><td>导向机构设计完整性</td><td>${guide_complete===2?'✓ 完整':'部分未完成'}</td><td>悬架+减振器均完成（2分）</td><td>${guide_complete}/2</td></tr>
 
-        <tr><td><b>⑤ 整体（共10分）</b></td><td colspan="2"></td><td><b>${sc.s5}/10</b></td></tr>
-        <tr><td>各模块均完成计算</td><td>${overall_score===10?'✓ 全部完成':overall_score>=6?'大部分完成':'部分未计算'}</td><td>5个子模块各2分（10分）</td><td>${overall_score}/10</td></tr>
+        <tr><td><b>⑤ 横向稳定杆（共5分）</b></td><td colspan="2"></td><td><b>${sc.s5}/5</b></td></tr>
+        <tr><td>稳定杆直径范围合理</td><td>d = ${stab_d_val} mm</td><td>15~25 mm（2分）</td><td>${stab_d_ok?2:0}/2</td></tr>
+        <tr><td>扭转刚度计算完整</td><td>${K_stab>0?'K_stab = '+K_stab.toFixed(2)+' N·m/rad':'✗ 未计算'}</td><td>已完成计算（3分）</td><td>${stab_k_ok?3:0}/3</td></tr>
       </table>
     </div>
 
@@ -1872,10 +1960,10 @@ function calcSuspensionScore() {
       <div class="card-title"><span class="icon">💡</span>改进建议</div>
       <div class="formula-box" style="line-height:2.2">
         ${sc.s1<17?'📌 <b>悬架主要参数不足：</b>偏频 n 应在推荐范围内，请按 fc=g/(4π²n²) 正确推导静挠度，动挠度宜取 70~90 mm。<br>':''}
-        ${sc.s2<17?'📌 <b>弹簧设计需改进：</b>丝径 d 应从标准系列中选取，切应力需满足 τ≤[τ]，并调整圈数使弹簧刚度 Cs·cos²α_s ≈ 悬架刚度 C。<br>':''}
+        ${sc.s2<21?'📌 <b>弹簧设计需改进：</b>弹簧刚度与悬架刚度匹配（偏差<10%）最关键（10分）；丝径应从标准系列选取，切应力须满足 τ≤[τ]，高径比≤4。<br>':''}
         ${sc.s3<13?'📌 <b>减振器设计需改进：</b>相对阻尼系数 ξ 推荐 0.25~0.35，工作缸径须从标准系列（30/32/35/38/40/42/45/50mm）中选取。<br>':''}
         ${sc.s4<13?'📌 <b>导向机构参数需检查：</b>主销后倾角建议 2°~4°，内倾角 11°~15°，车轮静态外倾角 -1°~+1°；完成侧倾中心高度计算（h_W 应在 0~150 mm 范围内）。<br>':''}
-        ${sc.s5<7?'📌 <b>部分模块未完成计算：</b>请确保悬架参数、弹簧、减振器、导向机构各模块均完成计算后再评分。<br>':''}
+        ${sc.s5<3?'📌 <b>横向稳定杆需完善：</b>稳定杆直径推荐 15~25mm，确认 K_stab = G×I_p/L_t 公式计算完整。<br>':''}
         ${total>=80?'✅ 整体设计质量良好，各项参数均达到课程设计要求，请继续完善设计说明书。':''}
       </div>
     </div>`;
@@ -1896,10 +1984,10 @@ function generateSuspensionReport() {
   report += '【综合评分】\n------------------------------------------------\n';
   report += `总分：${r.total} / 100  （${r.grade}）\n`;
   report += `悬架主要参数：${r.sc.s1} / 25\n`;
-  report += `螺旋弹簧设计：${r.sc.s2} / 25\n`;
+  report += `螺旋弹簧设计：${r.sc.s2} / 30\n`;
   report += `减振器设计：${r.sc.s3} / 20\n`;
   report += `导向机构：${r.sc.s4} / 20\n`;
-  report += `整体：${r.sc.s5} / 10\n\n`;
+  report += `横向稳定杆：${r.sc.s5} / 5\n\n`;
   report += '【主要设计参数】\n------------------------------------------------\n';
   report += `悬架偏频 n：${r.n.toFixed(3)} Hz\n`;
   report += `悬架静挠度 fc：${r.fc.toFixed(2)} mm\n`;
@@ -1931,7 +2019,7 @@ function generateSuspensionReport() {
   const blob = new Blob([report], {type:'text/plain;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `悬架设计评分报告_${appState.studentId}_${appState.studentName}_${new Date().toISOString().slice(0,10)}.txt`;
+  a.download = `${appState.studentId}_${appState.studentName}_麦弗逊悬架设计_计算结果评分报告_${new Date().toISOString().slice(0,10)}.txt`;
   a.click();
   alert('评分报告已生成！\n请将此 TXT 文件提交给教师，用于导入教师管理统计系统。');
 }
@@ -1953,7 +2041,9 @@ let state = {
   xi: 0, xi_ext: 0, xi_comp: 0,
   omega_n: 0, c_total: 0, c_ext: 0, c_comp: 0,
   v0: 0, F0: 0, D_calc: 0,
-  D_std: 0, S_stroke: 0, d_rod: 0
+  D_std: 0, S_stroke: 0, d_rod: 0,
+  // 横向稳定杆
+  K_stab: 0
 };
 
 function gv(id) { return parseFloat(document.getElementById(id).value) || 0; }
@@ -1962,9 +2052,40 @@ function sv(id) { return document.getElementById(id).value; }
 function switchTab(i) {
   document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
   document.querySelectorAll('.content').forEach((c,j) => c.classList.toggle('active', i===j));
-  if (i === 7) { syncDamperToSim(); }
-  if (i === 8) { calcAll(); generateSummary(); }
-  if (i === 9) { calcAll(); }
+  if (i === 8) { syncDamperToSim(); }
+  if (i === 9) { calcAll(); generateSummary(); }
+  if (i === 10) { calcAll(); }
+}
+
+function onSuspTypeChange() {
+  const type = document.querySelector('input[name="suspType"]:checked')?.value || 'front';
+  const label = document.getElementById('suspTypeLabel');
+  if (label) {
+    label.textContent = type === 'front'
+      ? '（影响偏频推荐范围、轴荷分配参数、侧倾中心评价等所有相关计算）'
+      : '（后悬架模式：偏频范围取前偏频×1.15~1.20倍）';
+  }
+}
+
+function calcStabilizer() {
+  const d = gv('stab_d'), Lt = gv('stab_Lt'), Lc = gv('stab_Lc'),
+        R = gv('stab_R'), E = gv('stab_E'), G = gv('stab_G');
+  const I = Math.PI * Math.pow(d, 4) / 64;
+  const Ip = Math.PI * Math.pow(d, 4) / 32;
+  const K_stab = G * Ip / Lt / 1000;
+  state.K_stab = K_stab;
+  document.getElementById('stabResult').innerHTML = `
+    <table class="result-table">
+      <tr><th>参数</th><th>计算值</th><th>单位</th></tr>
+      <tr><td>截面惯性矩 I = πd⁴/64</td><td>${I.toFixed(2)}</td><td>mm⁴</td></tr>
+      <tr><td>极惯性矩 I_p = πd⁴/32</td><td>${Ip.toFixed(2)}</td><td>mm⁴</td></tr>
+      <tr><td>扭转刚度 K_stab ≈ G×I_p/L_t</td><td>${K_stab.toFixed(2)}</td><td>N·m/rad</td></tr>
+    </table>
+    <div class="info-box" style="margin-top:10px">稳定杆扭转刚度影响车辆侧倾角刚度，通常希望侧倾角刚度在 400~1200 N·m/° 范围内。</div>
+  `;
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setEl('s_d', d + ' mm'); setEl('s_Lt', Lt + ' mm'); setEl('s_Lc', Lc + ' mm'); setEl('s_R', R + ' mm');
+  setEl('s_I', I.toFixed(1) + ' mm⁴'); setEl('s_Kstab', K_stab.toFixed(2) + ' N·m/rad');
 }
 
 function calcAll() {
@@ -1974,6 +2095,7 @@ function calcAll() {
   calcDamper();
   calcDamperSize();
   calcGuide();
+  calcStabilizer();
 }
 
 // ================== 悬架主要参数 ==================
@@ -2330,6 +2452,7 @@ function generateSummary() {
       <div class="summary-item"><div class="label">弹簧中径 Dm</div><div class="value">${state.Dm.toFixed(1)}</div><div class="unit-s">mm</div></div>
       <div class="summary-item"><div class="label">弹簧自由高 H₀</div><div class="value">${state.H0.toFixed(1)}</div><div class="unit-s">mm</div></div>
       <div class="summary-item"><div class="label">弹簧刚度 Cs</div><div class="value">${state.Cs.toFixed(2)}</div><div class="unit-s">N/mm</div></div>
+      <div class="summary-item"><div class="label">弹簧刚度偏差 δCs</div><div class="value">${(() => { const a = state.alpha_s_spring||0; const c = state.Cs*Math.pow(Math.cos(a*Math.PI/180),2); return state.C_susp>0&&state.Cs>0?(Math.abs(c-state.C_susp)/state.C_susp*100).toFixed(2):'—'; })()}</div><div class="unit-s">%</div></div>
       ` : ''}
       ${state.D_std ? `
       <div class="summary-item"><div class="label">减振器阻尼系数</div><div class="value">${state.c_total.toFixed(0)}</div><div class="unit-s">N·s/m</div></div>
@@ -2358,6 +2481,11 @@ function generateSummary() {
       <tr><td>弹簧自由高度</td><td>H₀</td><td>${state.H0.toFixed(1)}</td><td>mm</td></tr>
       <tr><td>弹簧压并高度</td><td>Hb</td><td>${state.Hb.toFixed(1)}</td><td>mm</td></tr>
       <tr><td>弹簧刚度</td><td>Cs</td><td>${state.Cs.toFixed(3)}</td><td>N/mm</td></tr>
+      <tr><td>弹簧刚度偏差</td><td>δCs</td><td>${(() => {
+        const alpha_s = state.alpha_s_spring || 0;
+        const Cs_c = state.Cs * Math.pow(Math.cos(alpha_s * Math.PI / 180), 2);
+        return state.C_susp > 0 && state.Cs > 0 ? (Math.abs(Cs_c - state.C_susp) / state.C_susp * 100).toFixed(2) + '%' : '—';
+      })()}</td><td>%（修正后与悬架刚度偏差）</td></tr>
       ` : ''}
       ${state.D_std ? `
       <tr><td rowspan="6"><b>减振器</b></td><td>相对阻尼系数</td><td>ξ</td><td>${state.xi}</td><td>—</td></tr>
@@ -2366,6 +2494,11 @@ function generateSummary() {
       <tr><td>压缩行程阻尼系数</td><td>c_comp</td><td>${state.c_comp.toFixed(1)}</td><td>N·s/m</td></tr>
       <tr><td>工作缸内径（标准）</td><td>D</td><td>${state.D_std}</td><td>mm</td></tr>
       <tr><td>活塞杆直径</td><td>d_rod</td><td>${state.d_rod}</td><td>mm</td></tr>
+      ` : ''}
+      ${state.K_stab ? `
+      <tr><td rowspan="3"><b>横向稳定杆</b></td><td>稳定杆直径</td><td>d_stab</td><td>${gv('stab_d').toFixed(0)}</td><td>mm</td></tr>
+      <tr><td>横向有效长度</td><td>L_t</td><td>${gv('stab_Lt').toFixed(0)}</td><td>mm</td></tr>
+      <tr><td>扭转刚度</td><td>K_stab</td><td>${state.K_stab.toFixed(2)}</td><td>N·m/rad</td></tr>
       ` : ''}
       <tr><td rowspan="${
           3 +
